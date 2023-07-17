@@ -1,5 +1,7 @@
 capnproto.org/go/capnp/v3 v3.0.0-alpha.28 h1:T8Ze5O4sEsjNYbvoJR2WDHbtNyWFh34ajdoHKXDQ99k=
 capnproto.org/go/capnp/v3 v3.0.0-alpha.28/go.mod h1:+ysMHvOh1EWNOyorxJWs1omhRFiDoKxKkWQACp54jKM=
+capnproto.org/go/capnp/v3 v3.0.0-alpha-29.0.20230703112659-e4708d081d4b h1:A2mCy9XaPsNAj3V4LOW2Rk3gt57aP7o/0fmlndQrQBw=
+capnproto.org/go/capnp/v3 v3.0.0-alpha-29.0.20230703112659-e4708d081d4b/go.mod h1:k7BSYhYMehjcMWbLTM7SfcoC303vLEjJQLmoR3GjmKk=
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.34.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.38.0/go.mod h1:990N+gfupTy94rShfmMCWGDn0LpTmnzTp2qbd1dvSRU=
@@ -771,6 +773,7 @@ golang.org/x/sync v0.0.0-20201207232520-09787c993a3a/go.mod h1:RxMgew5VJxzue5/jJ
 golang.org/x/sync v0.0.0-20210220032951-036812b2e83c/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
 golang.org/x/sync v0.0.0-20220929204114-8fcdb60fdcc0 h1:cu5kTvlzcw1Q5S9f5ip1/cpiB4nXvw1XYzFPGgzLUOY=
 golang.org/x/sync v0.0.0-20220929204114-8fcdb60fdcc0/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
+golang.org/x/sync v0.1.0 h1:wsuoTGHzEhffawBOhz5CYhcrV4IdKZbEyZjBMuTp12o=
 golang.org/x/sync v0.1.0/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
 golang.org/x/sys v0.0.0-20180622082034-63fc586f45fe/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
 golang.org/x/sys v0.0.0-20180823144017-11551d06cbcc/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
@@ -1091,5 +1094,7 @@ zenhack.net/go/tea v0.0.0-20230524023758-356c069b5d8c h1:NBWUKMOr82zV+iVAcL0hNhG
 zenhack.net/go/tea v0.0.0-20230524023758-356c069b5d8c/go.mod h1:13m+xT1CHx9o7qGuqY2fya7AHxeiQ0dL6TMZsaDO1l8=
 zenhack.net/go/util v0.0.0-20230512035932-3f5fdfa0f47d h1:x3qJuXlQfwxaOL5MRUbHMleCNFab7JUGPfCSifshfdU=
 zenhack.net/go/util v0.0.0-20230512035932-3f5fdfa0f47d/go.mod h1:1LtNdPAs8WH+BTcQiZAOo2MIKD/5jyK/u7sZ9ZPe5SE=
+zenhack.net/go/util v0.0.0-20230607025951-8b02fee814ae h1:MjNLCVT0QYNmXStslQk+ugtOvFCVpC7H6mWtkEI2PxI=
+zenhack.net/go/util v0.0.0-20230607025951-8b02fee814ae/go.mod h1:1LtNdPAs8WH+BTcQiZAOo2MIKD/5jyK/u7sZ9ZPe5SE=
 zenhack.net/go/websocket-capnp v0.0.0-20230212023810-f179b8b2c72b h1:NWJuexcpIZoHK/dLJEe7OSZM1Yht6qlriOJI1bR1Nqw=
 zenhack.net/go/websocket-capnp v0.0.0-20230212023810-f179b8b2c72b/go.mod h1:oQXDo3G6MvXhoTmQ/qm6izzRcg26Hi7OI+wfto0KEbw=

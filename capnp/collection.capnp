@@ -39,7 +39,7 @@ interface Puller(K, V) {
   # Afterwards, any changes to the collection will be sent in subsequent
   # batches of operations.
   #
-  # When the the returned `subsription` handle is dropped, the Puller
+  # When the the returned `subscription` handle is dropped, the Puller
   # will drop its reference to `into` and cease sending updates.
 
   key @1 (name :K) -> (getter :Util.Getter(V));

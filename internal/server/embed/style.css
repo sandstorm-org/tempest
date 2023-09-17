@@ -3,7 +3,7 @@
  * - Pick color and size constants once, up front, and then style everything from
  *   that pallet.
  * - Use semantic constants for colors (which are themselves defined in terms of the pallet).
- * - Use BEM-style classes for selectors.
+ * - Use BEM-style classes for selectors.  See https://getbem.com/.
  */
 :root {
 	/*** Color Pallet ***/
@@ -174,6 +174,9 @@ body {
 	background-color: var(--sidebar-bgcolor);
 	color: var(--sidebar-color);
 	width: var(--sz-192);
+}
+.main-ui__sidebar a {
+	color: var(--sidebar-color);
 }
 
 .modal-dialog {

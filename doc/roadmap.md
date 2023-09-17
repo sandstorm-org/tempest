@@ -62,10 +62,27 @@ Things users should be able to do, other than just interact with apps
 - [x] Create grains
 - [ ] Delete grains
 - [ ] Sharing stuff
+- [ ] Manage their profile information
+- [ ] Manage their credentials
 
 # Administrative Features
 
 Features used by admins
 
+- [ ] App sources
+- [ ] E-mail configuration
 - [ ] HTTPS setup
+- [ ] Login providers
+- [ ] Networking capabilities and security
+- [ ] Personalization
 - [ ] User management
+
+# Login providers
+
+- [ ] E-mail
+- [ ] Github
+- [ ] Google
+- [ ] ~~LDAP~~ - Maybe not?
+- [ ] ~~OpenID Connect~~ - Maybe not?
+- [ ] Passkey
+- [ ] ~~SAML~~ - Maybe not?

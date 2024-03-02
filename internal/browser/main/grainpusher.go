@@ -1,8 +1,8 @@
 package browsermain
 
 import (
-	"zenhack.net/go/tempest/capnp/external"
-	"zenhack.net/go/tempest/internal/common/types"
+	"sandstorm.org/go/tempest/capnp/external"
+	"sandstorm.org/go/tempest/internal/common/types"
 	"zenhack.net/go/util/exn"
 )
 

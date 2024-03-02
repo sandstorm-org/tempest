@@ -11,7 +11,7 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 
-	"zenhack.net/go/tempest/internal/config"
+	"sandstorm.org/go/tempest/internal/config"
 )
 
 const (

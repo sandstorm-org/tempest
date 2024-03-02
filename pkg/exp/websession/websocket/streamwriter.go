@@ -3,7 +3,7 @@ package websocket
 import (
 	"context"
 
-	websession "zenhack.net/go/tempest/capnp/web-session"
+	websession "sandstorm.org/go/tempest/capnp/web-session"
 )
 
 // A StreamWriter implements io.Writer on top of a WebSocketStream.

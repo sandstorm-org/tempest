@@ -16,9 +16,9 @@ import (
 
 	"capnproto.org/go/capnp/v3"
 	"golang.org/x/exp/slog"
-	spk "zenhack.net/go/tempest/capnp/package"
-	grainagent "zenhack.net/go/tempest/internal/capnp/grain-agent"
-	"zenhack.net/go/tempest/internal/server/logging"
+	spk "sandstorm.org/go/tempest/capnp/package"
+	grainagent "sandstorm.org/go/tempest/internal/capnp/grain-agent"
+	"sandstorm.org/go/tempest/internal/server/logging"
 	"zenhack.net/go/util"
 )
 

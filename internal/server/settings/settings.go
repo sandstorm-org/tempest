@@ -8,7 +8,7 @@ import (
 	"strconv"
 
 	"capnproto.org/go/capnp/v3/std/capnp/schema"
-	"zenhack.net/go/tempest/capnp/settings"
+	"sandstorm.org/go/tempest/capnp/settings"
 	"zenhack.net/go/util"
 )
 

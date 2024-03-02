@@ -23,7 +23,7 @@
 $import "/capnp/c++.capnp".namespace("sandstorm");
 using Go = import "/go.capnp";
 $Go.package("hacksession");
-$Go.import("zenhack.net/go/tempest/capnp/hacksession");
+$Go.import("sandstorm.org/go/tempest/capnp/hacksession");
 
 using Grain = import "grain.capnp";
 using Email = import "email.capnp";

@@ -9,7 +9,7 @@ using Go = import "/go.capnp";
 using Schema = import "/capnp/schema.capnp";
 
 $Go.package("settings");
-$Go.import("zenhack.net/go/tempest/capnp/settings");
+$Go.import("sandstorm.org/go/tempest/capnp/settings");
 
 struct Setting {
   # Specification of a setting

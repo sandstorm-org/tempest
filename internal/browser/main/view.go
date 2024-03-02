@@ -4,13 +4,13 @@ import (
 	"strings"
 	"syscall/js"
 
+	"sandstorm.org/go/tempest/internal/browser/intl"
+	"sandstorm.org/go/tempest/internal/common/types"
 	"zenhack.net/go/jsapi/streams"
 	"zenhack.net/go/tea"
 	"zenhack.net/go/tea/events"
 	"zenhack.net/go/tea/vdom"
 	"zenhack.net/go/tea/vdom/builder"
-	"zenhack.net/go/tempest/internal/browser/intl"
-	"zenhack.net/go/tempest/internal/common/types"
 	"zenhack.net/go/util/maps"
 	"zenhack.net/go/util/slices"
 )

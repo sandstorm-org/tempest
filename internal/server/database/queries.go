@@ -12,12 +12,12 @@ import (
 	"capnproto.org/go/capnp/v3"
 	"capnproto.org/go/capnp/v3/exc"
 	"capnproto.org/go/capnp/v3/packed"
-	"zenhack.net/go/tempest/capnp/grain"
-	"zenhack.net/go/tempest/capnp/identity"
-	spk "zenhack.net/go/tempest/capnp/package"
-	"zenhack.net/go/tempest/internal/capnp/system"
-	"zenhack.net/go/tempest/internal/common/types"
-	"zenhack.net/go/tempest/internal/server/tokenutil"
+	"sandstorm.org/go/tempest/capnp/grain"
+	"sandstorm.org/go/tempest/capnp/identity"
+	spk "sandstorm.org/go/tempest/capnp/package"
+	"sandstorm.org/go/tempest/internal/capnp/system"
+	"sandstorm.org/go/tempest/internal/common/types"
+	"sandstorm.org/go/tempest/internal/server/tokenutil"
 	"zenhack.net/go/util/exn"
 )
 

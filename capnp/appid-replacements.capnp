@@ -40,7 +40,7 @@
 $import "/capnp/c++.capnp".namespace("sandstorm::spk");
 using Go = import "/go.capnp";
 $Go.package("appidreplacements");
-$Go.import("zenhack.net/go/tempest/capnp/appid-replacements");
+$Go.import("sandstorm.org/go/tempest/capnp/appid-replacements");
 
 struct AppIdReplacement {
   # Specifies that packages signed by the app ID specified in `replacement` shall henceforth be

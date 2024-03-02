@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"capnproto.org/go/capnp/v3"
-	"zenhack.net/go/tempest/capnp/util"
-	"zenhack.net/go/tempest/pkg/exp/util/handle"
+	"sandstorm.org/go/tempest/capnp/util"
+	"sandstorm.org/go/tempest/pkg/exp/util/handle"
 )
 
 // FixedGetter returns a getter that always returns the argument. Its implementation

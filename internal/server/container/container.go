@@ -14,11 +14,11 @@ import (
 	"golang.org/x/exp/slog"
 	"golang.org/x/sys/unix"
 
-	"zenhack.net/go/tempest/capnp/grain"
-	"zenhack.net/go/tempest/internal/common/types"
-	"zenhack.net/go/tempest/internal/config"
-	"zenhack.net/go/tempest/internal/server/database"
-	"zenhack.net/go/tempest/internal/server/logging"
+	"sandstorm.org/go/tempest/capnp/grain"
+	"sandstorm.org/go/tempest/internal/common/types"
+	"sandstorm.org/go/tempest/internal/config"
+	"sandstorm.org/go/tempest/internal/server/database"
+	"sandstorm.org/go/tempest/internal/server/logging"
 	"zenhack.net/go/util"
 	"zenhack.net/go/util/exn"
 )

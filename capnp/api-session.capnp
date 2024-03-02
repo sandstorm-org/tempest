@@ -19,7 +19,7 @@
 $import "/capnp/c++.capnp".namespace("sandstorm");
 using Go = import "/go.capnp";
 $Go.package("apisession");
-$Go.import("zenhack.net/go/tempest/capnp/api-session");
+$Go.import("sandstorm.org/go/tempest/capnp/api-session");
 
 using WebSession = import "web-session.capnp";
 using IpAddress = import "ip.capnp".IpAddress;

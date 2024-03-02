@@ -20,7 +20,7 @@ using Cxx = import "/capnp/c++.capnp";
 $Cxx.namespace("sandstorm");
 using Go = import "/go.capnp";
 $Go.package("websession");
-$Go.import("zenhack.net/go/tempest/capnp/web-session");
+$Go.import("sandstorm.org/go/tempest/capnp/web-session");
 
 using Grain = import "grain.capnp";
 using Util = import "util.capnp";

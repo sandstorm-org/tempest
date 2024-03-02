@@ -5,7 +5,7 @@
 
 using Go = import "/go.capnp";
 $Go.package("grainagent");
-$Go.import("zenhack.net/go/tempest/internal/capnp/grain-agent");
+$Go.import("sandstorm.org/go/tempest/internal/capnp/grain-agent");
 
 struct LaunchCommand {
   # A LaunchCommand is passed as the first argument to the grain agent, as

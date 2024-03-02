@@ -4,8 +4,8 @@ import (
 	"math"
 
 	"capnproto.org/go/capnp/v3"
-	"zenhack.net/go/tempest/capnp/external"
-	"zenhack.net/go/tempest/internal/common/types"
+	"sandstorm.org/go/tempest/capnp/external"
+	"sandstorm.org/go/tempest/internal/common/types"
 	"zenhack.net/go/util/exn"
 )
 

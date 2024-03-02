@@ -3,7 +3,7 @@ package websession
 import (
 	"net/http"
 
-	websession "zenhack.net/go/tempest/capnp/web-session"
+	websession "sandstorm.org/go/tempest/capnp/web-session"
 )
 
 // Mapping from web-session success codes to http status code numbers

@@ -17,7 +17,7 @@ import (
 	"capnproto.org/go/capnp/v3"
 	"github.com/ulikunitz/xz"
 	"golang.org/x/sys/unix"
-	spk "zenhack.net/go/tempest/capnp/package"
+	spk "sandstorm.org/go/tempest/capnp/package"
 	"zenhack.net/go/util/exn"
 )
 

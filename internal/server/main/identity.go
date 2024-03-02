@@ -3,7 +3,7 @@ package servermain
 import (
 	"context"
 
-	"zenhack.net/go/tempest/capnp/identity"
+	"sandstorm.org/go/tempest/capnp/identity"
 )
 
 // Implementation of identity.Identity. getProfile() just returns

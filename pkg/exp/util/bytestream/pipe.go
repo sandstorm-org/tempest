@@ -4,7 +4,7 @@ import (
 	"context"
 	"io"
 
-	"zenhack.net/go/tempest/capnp/util"
+	"sandstorm.org/go/tempest/capnp/util"
 )
 
 // Pipe() is like io.Pipe(), except that the write end is a ByteStream.

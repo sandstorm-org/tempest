@@ -9,7 +9,7 @@ import (
 	"testing/quick"
 
 	"github.com/tj/assert"
-	"zenhack.net/go/tempest/capnp/util"
+	"sandstorm.org/go/tempest/capnp/util"
 )
 
 type writeNoopCloser struct {

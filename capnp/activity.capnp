@@ -19,7 +19,7 @@
 $import "/capnp/c++.capnp".namespace("sandstorm");
 using Go = import "/go.capnp";
 $Go.package("activity");
-$Go.import("zenhack.net/go/tempest/capnp/activity");
+$Go.import("sandstorm.org/go/tempest/capnp/activity");
 
 using Util = import "util.capnp";
 using Identity = import "identity.capnp";

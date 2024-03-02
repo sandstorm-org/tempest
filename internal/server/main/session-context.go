@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"capnproto.org/go/capnp/v3/exc"
-	"zenhack.net/go/tempest/capnp/grain"
+	"sandstorm.org/go/tempest/capnp/grain"
 )
 
 type sessionCtxImpl struct{}

@@ -3,8 +3,8 @@ package database
 import (
 	"database/sql"
 
-	spk "zenhack.net/go/tempest/capnp/package"
-	"zenhack.net/go/tempest/internal/common/types"
+	spk "sandstorm.org/go/tempest/capnp/package"
+	"sandstorm.org/go/tempest/internal/common/types"
 	"zenhack.net/go/util/exn"
 )
 

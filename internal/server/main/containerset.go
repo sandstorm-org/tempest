@@ -6,11 +6,11 @@ import (
 
 	"capnproto.org/go/capnp/v3"
 	"golang.org/x/exp/slog"
-	"zenhack.net/go/tempest/capnp/grain"
-	grainagent "zenhack.net/go/tempest/internal/capnp/grain-agent"
-	"zenhack.net/go/tempest/internal/common/types"
-	"zenhack.net/go/tempest/internal/server/container"
-	"zenhack.net/go/tempest/internal/server/database"
+	"sandstorm.org/go/tempest/capnp/grain"
+	grainagent "sandstorm.org/go/tempest/internal/capnp/grain-agent"
+	"sandstorm.org/go/tempest/internal/common/types"
+	"sandstorm.org/go/tempest/internal/server/container"
+	"sandstorm.org/go/tempest/internal/server/database"
 	"zenhack.net/go/util"
 )
 

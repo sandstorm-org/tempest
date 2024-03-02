@@ -19,7 +19,7 @@
 $import "/capnp/c++.capnp".namespace("sandstorm");
 using Go = import "/go.capnp";
 $Go.package("appidreplacementstest");
-$Go.import("zenhack.net/go/tempest/capnp/appid-replacements-test");
+$Go.import("sandstorm.org/go/tempest/capnp/appid-replacements-test");
 
 using AppIdReplacement = import "appid-replacements.capnp".AppIdReplacement;
 

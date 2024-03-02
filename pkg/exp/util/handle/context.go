@@ -4,7 +4,7 @@ package handle
 import (
 	"context"
 
-	"zenhack.net/go/tempest/capnp/util"
+	"sandstorm.org/go/tempest/capnp/util"
 )
 
 // WithCancel is like context.WithCancel, except that it returns a Handle

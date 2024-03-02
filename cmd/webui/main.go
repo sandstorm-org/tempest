@@ -1,7 +1,7 @@
 package main
 
 import (
-	browsermain "zenhack.net/go/tempest/internal/browser/main"
+	browsermain "sandstorm.org/go/tempest/internal/browser/main"
 )
 
 func main() {

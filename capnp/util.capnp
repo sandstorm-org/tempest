@@ -19,7 +19,7 @@
 $import "/capnp/c++.capnp".namespace("sandstorm");
 using Go = import "/go.capnp";
 $Go.package("util");
-$Go.import("zenhack.net/go/tempest/capnp/util");
+$Go.import("sandstorm.org/go/tempest/capnp/util");
 
 using DateInNs = Int64;
 using DurationInNs = UInt64;

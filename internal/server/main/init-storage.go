@@ -3,7 +3,7 @@ package servermain
 import (
 	"os"
 
-	"zenhack.net/go/tempest/internal/config"
+	"sandstorm.org/go/tempest/internal/config"
 	"zenhack.net/go/util"
 )
 

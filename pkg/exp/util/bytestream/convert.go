@@ -6,7 +6,7 @@ import (
 	"context"
 	"io"
 
-	"zenhack.net/go/tempest/capnp/util"
+	"sandstorm.org/go/tempest/capnp/util"
 )
 
 // Convert an io.WriteCloser to a util.ByteStream. WriteCloser's Write and

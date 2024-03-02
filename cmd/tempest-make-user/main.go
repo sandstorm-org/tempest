@@ -3,9 +3,9 @@ package main
 import (
 	"flag"
 
-	"zenhack.net/go/tempest/internal/common/types"
-	"zenhack.net/go/tempest/internal/server/database"
-	"zenhack.net/go/tempest/internal/server/tokenutil"
+	"sandstorm.org/go/tempest/internal/common/types"
+	"sandstorm.org/go/tempest/internal/server/database"
+	"sandstorm.org/go/tempest/internal/server/tokenutil"
 	"zenhack.net/go/util"
 )
 

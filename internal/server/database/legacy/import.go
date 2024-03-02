@@ -12,11 +12,11 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 
 	"go.mongodb.org/mongo-driver/bson"
-	"zenhack.net/go/tempest/capnp/identity"
-	spk "zenhack.net/go/tempest/capnp/package"
-	"zenhack.net/go/tempest/internal/common/types"
-	"zenhack.net/go/tempest/internal/config"
-	"zenhack.net/go/tempest/internal/server/database"
+	"sandstorm.org/go/tempest/capnp/identity"
+	spk "sandstorm.org/go/tempest/capnp/package"
+	"sandstorm.org/go/tempest/internal/common/types"
+	"sandstorm.org/go/tempest/internal/config"
+	"sandstorm.org/go/tempest/internal/server/database"
 	"zenhack.net/go/util/exn"
 )
 

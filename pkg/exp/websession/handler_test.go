@@ -11,9 +11,9 @@ import (
 	"testing"
 
 	"github.com/tj/assert"
-	utilcp "zenhack.net/go/tempest/capnp/util"
-	websession "zenhack.net/go/tempest/capnp/web-session"
-	"zenhack.net/go/tempest/pkg/exp/util/handle"
+	utilcp "sandstorm.org/go/tempest/capnp/util"
+	websession "sandstorm.org/go/tempest/capnp/web-session"
+	"sandstorm.org/go/tempest/pkg/exp/util/handle"
 	"zenhack.net/go/util"
 )
 

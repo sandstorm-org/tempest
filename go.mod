@@ -1,4 +1,4 @@
-module zenhack.net/go/tempest
+module sandstorm.org/go/tempest
 
 go 1.20
 

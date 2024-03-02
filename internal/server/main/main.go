@@ -8,10 +8,10 @@ import (
 	"os/signal"
 	"syscall"
 
-	"zenhack.net/go/tempest/internal/server/database"
-	"zenhack.net/go/tempest/internal/server/logging"
-	"zenhack.net/go/tempest/internal/server/session"
-	"zenhack.net/go/tempest/internal/server/settings"
+	"sandstorm.org/go/tempest/internal/server/database"
+	"sandstorm.org/go/tempest/internal/server/logging"
+	"sandstorm.org/go/tempest/internal/server/session"
+	"sandstorm.org/go/tempest/internal/server/settings"
 	"zenhack.net/go/util"
 )
 

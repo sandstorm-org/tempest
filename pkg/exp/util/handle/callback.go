@@ -3,7 +3,7 @@ package handle
 import (
 	"context"
 
-	"zenhack.net/go/tempest/capnp/util"
+	"sandstorm.org/go/tempest/capnp/util"
 )
 
 // CallbackHandle returns a handle which calls cb when the last reference

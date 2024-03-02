@@ -3,10 +3,10 @@ package servermain
 import (
 	"context"
 
-	"zenhack.net/go/tempest/capnp/external"
-	"zenhack.net/go/tempest/internal/common/types"
-	"zenhack.net/go/tempest/internal/server/database"
-	"zenhack.net/go/tempest/internal/server/session"
+	"sandstorm.org/go/tempest/capnp/external"
+	"sandstorm.org/go/tempest/internal/common/types"
+	"sandstorm.org/go/tempest/internal/server/database"
+	"sandstorm.org/go/tempest/internal/server/session"
 	"zenhack.net/go/util/exn"
 )
 

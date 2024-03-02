@@ -5,7 +5,7 @@ import (
 	"errors"
 	"net/http"
 
-	"zenhack.net/go/tempest/capnp/util"
+	"sandstorm.org/go/tempest/capnp/util"
 )
 
 var (

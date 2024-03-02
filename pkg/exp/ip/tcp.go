@@ -4,8 +4,8 @@ import (
 	"context"
 	"io"
 
-	"zenhack.net/go/tempest/capnp/ip"
-	"zenhack.net/go/tempest/pkg/exp/util/bytestream"
+	"sandstorm.org/go/tempest/capnp/ip"
+	"sandstorm.org/go/tempest/pkg/exp/util/bytestream"
 
 	"capnproto.org/go/capnp/v3"
 )

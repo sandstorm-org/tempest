@@ -14,10 +14,10 @@ import (
 	"capnproto.org/go/capnp/v3"
 	"capnproto.org/go/capnp/v3/flowcontrol"
 	"github.com/gobwas/ws"
-	"zenhack.net/go/tempest/capnp/util"
-	websession "zenhack.net/go/tempest/capnp/web-session"
-	"zenhack.net/go/tempest/pkg/exp/util/bytestream"
-	"zenhack.net/go/tempest/pkg/exp/websession/websocket"
+	"sandstorm.org/go/tempest/capnp/util"
+	websession "sandstorm.org/go/tempest/capnp/web-session"
+	"sandstorm.org/go/tempest/pkg/exp/util/bytestream"
+	"sandstorm.org/go/tempest/pkg/exp/websession/websocket"
 )
 
 // A Handler implements http.Handler on top of a WebSession. NOTE: this is work in progress;

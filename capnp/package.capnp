@@ -20,7 +20,7 @@
 $import "/capnp/c++.capnp".namespace("sandstorm::spk");
 using Go = import "/go.capnp";
 $Go.package("spk");
-$Go.import("zenhack.net/go/tempest/capnp/package");
+$Go.import("sandstorm.org/go/tempest/capnp/package");
 
 using Util = import "util.capnp";
 using Powerbox = import "powerbox.capnp";

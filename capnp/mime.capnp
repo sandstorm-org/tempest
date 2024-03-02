@@ -19,7 +19,7 @@
 $import "/capnp/c++.capnp".namespace("sandstorm");
 using Go = import "/go.capnp";
 $Go.package("mime");
-$Go.import("zenhack.net/go/tempest/capnp/mime");
+$Go.import("sandstorm.org/go/tempest/capnp/mime");
 
 struct MimeTypeInfo {
   name @0 :Text;

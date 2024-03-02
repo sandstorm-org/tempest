@@ -3,8 +3,8 @@ package servermain
 import (
 	"net/http"
 
-	websessioncp "zenhack.net/go/tempest/capnp/web-session"
-	"zenhack.net/go/tempest/pkg/exp/websession"
+	websessioncp "sandstorm.org/go/tempest/capnp/web-session"
+	"sandstorm.org/go/tempest/pkg/exp/websession"
 )
 
 func ServeApp(

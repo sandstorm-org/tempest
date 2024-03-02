@@ -8,7 +8,7 @@ import (
 
 	"capnproto.org/go/capnp/v3"
 	"capnproto.org/go/capnp/v3/pogs"
-	"zenhack.net/go/tempest/internal/config"
+	"sandstorm.org/go/tempest/internal/config"
 	"zenhack.net/go/util/exn"
 )
 

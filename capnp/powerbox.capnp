@@ -19,7 +19,7 @@
 $import "/capnp/c++.capnp".namespace("sandstorm");
 using Go = import "/go.capnp";
 $Go.package("powerbox");
-$Go.import("zenhack.net/go/tempest/capnp/powerbox");
+$Go.import("sandstorm.org/go/tempest/capnp/powerbox");
 
 using Util = import "util.capnp";
 

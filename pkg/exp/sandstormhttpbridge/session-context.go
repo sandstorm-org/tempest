@@ -3,9 +3,9 @@ package sandstormhttpbridge
 import (
 	"net/http"
 
-	"zenhack.net/go/tempest/capnp/grain"
-	"zenhack.net/go/tempest/capnp/powerbox"
-	sandstormhttpbridge "zenhack.net/go/tempest/capnp/sandstorm-http-bridge"
+	"sandstorm.org/go/tempest/capnp/grain"
+	"sandstorm.org/go/tempest/capnp/powerbox"
+	sandstormhttpbridge "sandstorm.org/go/tempest/capnp/sandstorm-http-bridge"
 )
 
 type hasId interface {

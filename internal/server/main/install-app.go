@@ -7,13 +7,13 @@ import (
 	"path/filepath"
 
 	capnpServer "capnproto.org/go/capnp/v3/server"
-	"zenhack.net/go/tempest/capnp/external"
-	"zenhack.net/go/tempest/capnp/util"
-	"zenhack.net/go/tempest/internal/common/types"
-	"zenhack.net/go/tempest/internal/config"
-	"zenhack.net/go/tempest/internal/server/database"
-	"zenhack.net/go/tempest/pkg/exp/spk"
-	"zenhack.net/go/tempest/pkg/exp/util/bytestream"
+	"sandstorm.org/go/tempest/capnp/external"
+	"sandstorm.org/go/tempest/capnp/util"
+	"sandstorm.org/go/tempest/internal/common/types"
+	"sandstorm.org/go/tempest/internal/config"
+	"sandstorm.org/go/tempest/internal/server/database"
+	"sandstorm.org/go/tempest/pkg/exp/spk"
+	"sandstorm.org/go/tempest/pkg/exp/util/bytestream"
 	"zenhack.net/go/util/exn"
 )
 

@@ -6,7 +6,7 @@
 
 using Go = import "/go.capnp";
 $Go.package("system");
-$Go.import("zenhack.net/go/tempest/internal/capnp/system");
+$Go.import("sandstorm.org/go/tempest/internal/capnp/system");
 
 using Identity = import "/identity.capnp";
 

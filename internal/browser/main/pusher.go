@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"capnproto.org/go/capnp/v3"
-	"zenhack.net/go/tempest/capnp/collection"
+	"sandstorm.org/go/tempest/capnp/collection"
 	"zenhack.net/go/util/exn"
 )
 

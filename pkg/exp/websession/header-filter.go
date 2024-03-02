@@ -7,7 +7,7 @@ import (
 	"capnproto.org/go/capnp/v3"
 	"zenhack.net/go/util"
 
-	websession "zenhack.net/go/tempest/capnp/web-session"
+	websession "sandstorm.org/go/tempest/capnp/web-session"
 )
 
 var (

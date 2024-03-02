@@ -6,8 +6,8 @@ import (
 	"net/url"
 
 	"golang.org/x/exp/slog"
-	"zenhack.net/go/tempest/internal/server/logging"
-	"zenhack.net/go/tempest/internal/server/settings"
+	"sandstorm.org/go/tempest/internal/server/logging"
+	"sandstorm.org/go/tempest/internal/server/settings"
 	"zenhack.net/go/util"
 )
 

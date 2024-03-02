@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	"zenhack.net/go/tempest/internal/server/database"
-	"zenhack.net/go/tempest/internal/server/database/legacy"
+	"sandstorm.org/go/tempest/internal/server/database"
+	"sandstorm.org/go/tempest/internal/server/database/legacy"
 	"zenhack.net/go/util"
 )
 

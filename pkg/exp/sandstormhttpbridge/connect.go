@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	bridge "zenhack.net/go/tempest/capnp/sandstorm-http-bridge"
+	bridge "sandstorm.org/go/tempest/capnp/sandstorm-http-bridge"
 
 	"capnproto.org/go/capnp/v3"
 	"capnproto.org/go/capnp/v3/rpc"

@@ -4,9 +4,9 @@ import (
 	"net/url"
 	"syscall/js"
 
-	"zenhack.net/go/tempest/capnp/external"
-	"zenhack.net/go/tempest/internal/browser/intl"
-	"zenhack.net/go/tempest/internal/common/types"
+	"sandstorm.org/go/tempest/capnp/external"
+	"sandstorm.org/go/tempest/internal/browser/intl"
+	"sandstorm.org/go/tempest/internal/common/types"
 	"zenhack.net/go/util/maybe"
 	"zenhack.net/go/util/orerr"
 	"zenhack.net/go/util/slices/poolslice"

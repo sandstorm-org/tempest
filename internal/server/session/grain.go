@@ -1,8 +1,8 @@
 package session
 
 import (
-	"zenhack.net/go/tempest/internal/capnp/cookie"
-	"zenhack.net/go/tempest/internal/common/types"
+	"sandstorm.org/go/tempest/internal/capnp/cookie"
+	"sandstorm.org/go/tempest/internal/common/types"
 )
 
 type GrainSession struct {

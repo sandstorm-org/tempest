@@ -4,7 +4,7 @@ import (
 	"context"
 	"io"
 
-	websession "zenhack.net/go/tempest/capnp/web-session"
+	websession "sandstorm.org/go/tempest/capnp/web-session"
 )
 
 // WriterStream implements websession.WebSocketStream_Server by writing data to W.

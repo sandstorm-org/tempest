@@ -41,7 +41,7 @@
 $import "/capnp/c++.capnp".namespace("sandstorm");
 using Go = import "/go.capnp";
 $Go.package("ip");
-$Go.import("zenhack.net/go/tempest/capnp/ip");
+$Go.import("sandstorm.org/go/tempest/capnp/ip");
 
 using Util = import "util.capnp";
 

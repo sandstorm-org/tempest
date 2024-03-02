@@ -1,9 +1,9 @@
 package session
 
 import (
-	"zenhack.net/go/tempest/internal/capnp/cookie"
-	"zenhack.net/go/tempest/internal/common/types"
-	"zenhack.net/go/tempest/internal/server/tokenutil"
+	"sandstorm.org/go/tempest/internal/capnp/cookie"
+	"sandstorm.org/go/tempest/internal/common/types"
+	"sandstorm.org/go/tempest/internal/server/tokenutil"
 )
 
 type UserSession struct {

@@ -9,7 +9,7 @@ import (
 	"github.com/go-acme/lego/v4/lego"
 	"github.com/go-acme/lego/v4/providers/dns"
 	"github.com/go-acme/lego/v4/registration"
-	"zenhack.net/go/tempest/internal/server/settings"
+	"sandstorm.org/go/tempest/internal/server/settings"
 	"zenhack.net/go/util/exn"
 )
 

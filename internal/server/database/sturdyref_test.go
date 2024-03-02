@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"zenhack.net/go/tempest/internal/server/tokenutil"
+	"sandstorm.org/go/tempest/internal/server/tokenutil"
 )
 
 // Save and restore a sturdyRef, and verify that the value is the same.

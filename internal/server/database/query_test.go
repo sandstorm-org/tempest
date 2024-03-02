@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"zenhack.net/go/tempest/internal/common/types"
+	"sandstorm.org/go/tempest/internal/common/types"
 )
 
 // Test the CredentialAccount method

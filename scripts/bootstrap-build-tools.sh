@@ -35,7 +35,7 @@ go_downloaded_file="${DOWNLOAD_CACHE_DIR}/${go_destination_file}"
 
 # Clean up after the script
 #cleanup() {
-#	echo "Nothing to clean"
+#	printf '%s' "Nothing to clean"
 #}
 
 # Create the download cache directory if it does not exist.
@@ -51,7 +51,7 @@ download_go() {
 		if [ -e "${download_to_file}" ]; then
 			fail 3 "Go release path exists but is not a normal file"
 		fi
-		echo "DOWNLOADING ${download_url}"
+		printf 'Downloading %s' "${download_url}"
 		retryable_curl "${download_url}" "${download_to_file}"
 	fi
 	# Continue to SHA-256 check
@@ -85,7 +85,7 @@ prompt_yesno() {
 			;;
 		esac
 
-		echo "Please answer \"yes\" or \"no\"."
+		printf '%s' "Please answer \"yes\" or \"no\"."
 	done
 }
 
@@ -140,7 +140,7 @@ wait_delay() {
 	delay="$1"
 	units="second"
 	[ "$delay" -ne 1 ] && units="seconds"
-	echo "Waiting ${delay} ${units}..."
+	printf 'Waiting %d %s...' "${delay}" "${units}"
 	sleep "$delay"
 }
 

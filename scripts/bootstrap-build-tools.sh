@@ -15,39 +15,57 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
+# Status codes:
+# 1 - SHA-256 value of the downloaded Go release did not match the expected value
+# 2 - downloaded Go release could not be read during SHA-256 check
+# 3 - Go release path exists in download cache directory but is not a file
+
+# User settings
+[ -z "${DOWNLOAD_CACHE_DIR}" ] && DOWNLOAD_CACHE_DIR="${HOME}/.cache/tempest-build-tools/downloads"
+[ -z "${DOWNLOAD_USER_AGENT}" ] && DOWNLOAD_USER_AGENT="tempest-bootstrap-build-tools"
 
 #script_dir="$( cd "$( dirname "$0" )" && pwd )"
 #build_tools_dir="${script_dir}/../build-tools"
-[ -z "${download_user_agent}" ] && download_user_agent="tempest-bootstrap-build-tools"
 
 go_destination_file="go1.23.3.linux-amd64.tar.gz"
 go_download_url="https://go.dev/dl/${go_destination_file}"
 go_expected_sha256="a0afb9744c00648bafb1b90b4aba5bdb86f424f02f9275399ce0c20b93a2c3a8"
-work_dir="$(mktemp -d ./bootstrap-build-tools.XXXXXXXXXX)"
-go_downloaded_file="${work_dir}/${go_destination_file}"
+go_downloaded_file="${DOWNLOAD_CACHE_DIR}/${go_destination_file}"
 
 # Clean up after the script
-cleanup() {
-	rm -rf "${work_dir}"
-}
+#cleanup() {
+#	echo "Nothing to clean"
+#}
 
-# Print an error to stderr and exit
-fail() {
-	# Store the status code.
-	status=$1
-	shift
-	# Print the other arguments.
-	printf '%s\n' "$*" >&2
-	exit "$status"
-
+# Create the download cache directory if it does not exist.
+create_download_cache_dir() {
+	mkdir -p "${DOWNLOAD_CACHE_DIR}"
 }
 
 # Download Go from go.dev.
 download_go() {
 	download_url="$1"
 	download_to_file="$2"
-	echo "DOWNLOADING ${download_url}"
-	retryable_curl "${download_url}" "${download_to_file}"
+	if [ ! -f "${download_to_file}" ]; then
+		if [ -e "${download_to_file}" ]; then
+			fail 3 "Go release path exists but is not a normal file"
+		fi
+		echo "DOWNLOADING ${download_url}"
+		retryable_curl "${download_url}" "${download_to_file}"
+	fi
+	# Continue to SHA-256 check
+}
+
+# Print an error to stderr and exit
+fail() {
+	# Store the status code.
+	status="$1"
+	shift
+	# Print the other arguments.
+	printf '%s\n' "$*" >&2
+	exit "$status"
+
 }
 
 # Ask the user a yes/no question.
@@ -77,7 +95,7 @@ retryable_curl() {
 	success="yes"
 	[ -n "$3" ] && [ "$3" -ge 1 ] && backoff_delay=$3
 
-	curl --user-agent "${download_user_agent}" --fail --location "$1" >"$2" || success="no"
+	curl --user-agent "${DOWNLOAD_USER_AGENT}" --fail --location "$1" >"$2" || success="no"
 	if [ "${success}" = "no" ]; then
 		if prompt_yesno "Downloading $1 failed.  Retry? " "yes"; then
 			wait_delay "$backoff_delay"
@@ -95,9 +113,11 @@ verify_sha256() {
 	# Build an SHA256SUMS file for the downloaded file.
 	file_dir=$(dirname "${file_path}")
 	file_name=$(basename "${file_path}")
-	sha256sum_path=$(mktemp)
-	printf "%s *%s\n" "${expected_sha256}" "${file_name}" >"${sha256sum_path}"
-	cat "${sha256sum_path}"
+	sha256sum_path="${file_dir}/SHA256SUMS"
+	if [ -n "${file_dir}" ] && [ -e "$sha256sum_path" ]; then
+		rm -f "$sha256sum_path"
+	fi
+	printf "%s *%s\n" "${expected_sha256}" "${file_name}" >>"${sha256sum_path}"
 
 	# Check the SHA-256 value.
 	pwd=$(pwd)
@@ -109,13 +129,10 @@ verify_sha256() {
 		shasum --algorithm 256 --check "${sha256sum_path}"
 		sha256_rc=$?
 	fi
-	cd "${pwd}" || fail 2 "Failed to return to previous directory"
-
 	if [ "$sha256_rc" -ne 0 ]; then
-		rm "${sha256sum_path}"
 		fail 1 "Failed to verify the SHA-256 value for the file ${file_name}"
 	fi
-	rm "${sha256sum_path}"
+	cd "${pwd}" || fail 2 "Failed to return to previous directory"
 }
 
 # Wait
@@ -127,6 +144,7 @@ wait_delay() {
 	sleep "$delay"
 }
 
-trap cleanup HUP INT QUIT ABRT
+#trap cleanup HUP INT QUIT ABRT
+create_download_cache_dir
 download_go "${go_download_url}" "${go_downloaded_file}"
 verify_sha256 "${go_expected_sha256}" "${go_downloaded_file}"

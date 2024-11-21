@@ -17,9 +17,19 @@
 # limitations under the License.
 #
 # Status codes:
-# 1 - SHA-256 value of the downloaded Go release did not match the expected value
-# 2 - downloaded Go release could not be read during SHA-256 check
-# 3 - Go release path exists in download cache directory but is not a file
+#  1 - SHA-256 value of the downloaded Go release did not match the expected value.
+#  2 - Downloaded Go release could not be read during SHA-256 check.
+#  3 - Go release path exists in download cache directory but is not a file.
+#  4 - Prerequisite printf is missing.
+#  5 - Prerequisite curl is missing.
+#  6 - Prerequisite git is missing.
+#  7 - Prerequisite gunzip is missing.
+#  8 - Prerequisite make is missing.
+#  9 - Prerequisite mkdir is missing.
+# 10 - Prerequisite sha256sum or shasum is missing.
+# 11 - Prerequisite rm is missing.
+# 12 - Prerequisite sleep is missing.
+# 13 - Prerequisite tar is missing.
 
 # User settings
 [ -z "${DOWNLOAD_CACHE_DIR}" ] && DOWNLOAD_CACHE_DIR="${HOME}/.cache/tempest-build-tools/downloads"
@@ -32,6 +42,30 @@ go_destination_file="go1.23.3.linux-amd64.tar.gz"
 go_download_url="https://go.dev/dl/${go_destination_file}"
 go_expected_sha256="a0afb9744c00648bafb1b90b4aba5bdb86f424f02f9275399ce0c20b93a2c3a8"
 go_downloaded_file="${DOWNLOAD_CACHE_DIR}/${go_destination_file}"
+
+# Ensure that the system has the command necessary to run this script.
+check_for_prerequisites() {
+	if ! command -v printf >/dev/null 2>/dev/null; then
+		# There is no point to use fail, which requires printf
+		quit 4
+	elif ! command -v curl >/dev/null 2>/dev/null; then
+		fail 5 "The curl command, required to use this script, is not found."
+	elif ! command -v git >/dev/null 2>/dev/null; then
+		fail 6 "The git command, required to use this script, is not found."
+	elif ! command -v gunzip >/dev/null 2>/dev/null; then
+		fail 7 "The gunzip command, required to use this script, is not found."
+	elif ! command -v make >/dev/null 2>/dev/null; then
+		fail 8 "The make command, required to use this script, is not found."
+	elif ! command -v mkdir >/dev/null 2>/dev/null; then
+		fail 9 "The mkdir command, required to use this script, is not found."
+	elif ! command -v rm >/dev/null 2>/dev/null; then
+		fail 11 "The rm command, required to use this script, is not found."
+	elif ! command -v sleep >/dev/null 2>/dev/null; then
+		fail 12 "The sleep command, required to use this script, is not found."
+	elif ! command -v tar >/dev/null 2>/dev/null; then
+		fail 13 "The tar command, required to use this script, is not found."
+	fi
+}
 
 # Clean up after the script
 #cleanup() {
@@ -128,6 +162,8 @@ verify_sha256() {
 	elif command -v shasum >/dev/null 2>/dev/null; then
 		shasum --algorithm 256 --check "${sha256sum_path}"
 		sha256_rc=$?
+	else
+		fail 10 "The sha256sum or shasum command, required to use this script, is not found."
 	fi
 	if [ "$sha256_rc" -ne 0 ]; then
 		fail 1 "Failed to verify the SHA-256 value for the file ${file_name}"
@@ -145,6 +181,7 @@ wait_delay() {
 }
 
 #trap cleanup HUP INT QUIT ABRT
+check_for_prerequisites
 create_download_cache_dir
 download_go "${go_download_url}" "${go_downloaded_file}"
 verify_sha256 "${go_expected_sha256}" "${go_downloaded_file}"

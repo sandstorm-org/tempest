@@ -26,22 +26,27 @@
 #  7 - Prerequisite gunzip is missing.
 #  8 - Prerequisite make is missing.
 #  9 - Prerequisite mkdir is missing.
-# 10 - Prerequisite sha256sum or shasum is missing.
-# 11 - Prerequisite rm is missing.
-# 12 - Prerequisite sleep is missing.
-# 13 - Prerequisite tar is missing.
+# 10 - Prerequisite mv is missing.
+# 11 - Prerequisite sha256sum or shasum is missing.
+# 12 - Prerequisite rm is missing.
+# 13 - Prerequisite sleep is missing.
+# 14 - Prerequisite tar is missing.
+# 15 - Failed to extract Go from Go release archive.
 
 # User settings
 [ -z "${DOWNLOAD_CACHE_DIR}" ] && DOWNLOAD_CACHE_DIR="${HOME}/.cache/tempest-build-tools/downloads"
 [ -z "${DOWNLOAD_USER_AGENT}" ] && DOWNLOAD_USER_AGENT="tempest-bootstrap-build-tools"
 
-#script_dir="$( cd "$( dirname "$0" )" && pwd )"
-#build_tools_dir="${script_dir}/../build-tools"
+script_dir="$(cd "$(dirname "$0")" && pwd)"
+build_tools_dir="$(cd "${script_dir}"/.. && pwd)/build-tools"
+build_tools_env_file="${build_tools_dir}/tempest-build-tools.env"
 
-go_destination_file="go1.23.3.linux-amd64.tar.gz"
+go_version="1.23.3"
+go_destination_file="go${go_version}.linux-amd64.tar.gz"
 go_download_url="https://go.dev/dl/${go_destination_file}"
 go_expected_sha256="a0afb9744c00648bafb1b90b4aba5bdb86f424f02f9275399ce0c20b93a2c3a8"
 go_downloaded_file="${DOWNLOAD_CACHE_DIR}/${go_destination_file}"
+go_install_dir="${build_tools_dir}/go-${go_version}"
 
 # Ensure that the system has the command necessary to run this script.
 check_for_prerequisites() {
@@ -58,12 +63,15 @@ check_for_prerequisites() {
 		fail 8 "The make command, required to use this script, is not found."
 	elif ! command -v mkdir >/dev/null 2>/dev/null; then
 		fail 9 "The mkdir command, required to use this script, is not found."
+	elif ! command -v mv >/dev/null 2>/dev/null; then
+		fail 10 "The mv command, required to use this script, is not found."
+	# sha256sum or shasum are checked at the call site
 	elif ! command -v rm >/dev/null 2>/dev/null; then
-		fail 11 "The rm command, required to use this script, is not found."
+		fail 12 "The rm command, required to use this script, is not found."
 	elif ! command -v sleep >/dev/null 2>/dev/null; then
-		fail 12 "The sleep command, required to use this script, is not found."
+		fail 13 "The sleep command, required to use this script, is not found."
 	elif ! command -v tar >/dev/null 2>/dev/null; then
-		fail 13 "The tar command, required to use this script, is not found."
+		fail 14 "The tar command, required to use this script, is not found."
 	fi
 }
 
@@ -74,7 +82,7 @@ check_for_prerequisites() {
 
 # Create the download cache directory if it does not exist.
 create_download_cache_dir() {
-	mkdir -p "${DOWNLOAD_CACHE_DIR}"
+	mkdir --parents "${DOWNLOAD_CACHE_DIR}"
 }
 
 # Download Go from go.dev.
@@ -89,6 +97,22 @@ download_go() {
 		retryable_curl "${download_url}" "${download_to_file}"
 	fi
 	# Continue to SHA-256 check
+}
+
+# Extract the Go archive to the ${go_install_dir}.
+extract_go() {
+	mkdir --parents "${go_install_dir}"
+	# Using short options with tar for macOS compatibility
+	if ! gunzip --stdout "${go_downloaded_file}" | tar -C "${go_install_dir}" -x; then
+		fail 15 "Failed to extract \"${go_downloaded_file}\" to \"${go_install_dir}\""
+	fi
+	# Go gives us ${go_install_dir}/go/...
+	# Move the ... to ${go_install_dir}
+	# (This is easier than trying to deal with transforming file names
+	# during extraction.
+	mv "${go_install_dir}"/go/* "${go_install_dir}"
+	rmdir "${go_install_dir}/go"
+	printf 'GOROOT=%s\n' "${go_install_dir}" >>"${build_tools_env_file}"
 }
 
 # Print an error to stderr and exit
@@ -163,7 +187,7 @@ verify_sha256() {
 		shasum --algorithm 256 --check "${sha256sum_path}"
 		sha256_rc=$?
 	else
-		fail 10 "The sha256sum or shasum command, required to use this script, is not found."
+		fail 11 "The sha256sum or shasum command, required to use this script, is not found."
 	fi
 	if [ "$sha256_rc" -ne 0 ]; then
 		fail 1 "Failed to verify the SHA-256 value for the file ${file_name}"
@@ -185,3 +209,4 @@ check_for_prerequisites
 create_download_cache_dir
 download_go "${go_download_url}" "${go_downloaded_file}"
 verify_sha256 "${go_expected_sha256}" "${go_downloaded_file}"
+extract_go

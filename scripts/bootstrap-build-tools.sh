@@ -40,7 +40,6 @@
 
 script_dir="$(cd "$(dirname "$0")" && pwd)"
 build_tools_dir="$(cd "${script_dir}"/.. && pwd)/build-tools"
-build_tools_env_file="${build_tools_dir}/tempest-build-tools.env"
 
 go_version="1.23.3"
 go_destination_file="go${go_version}.linux-amd64.tar.gz"
@@ -107,20 +106,21 @@ download_go() {
 	# Continue to SHA-256 check
 }
 
-# Extract the Go archive to the ${go_install_dir}.
+# Extract the downloaded Go archive to the destination.
 extract_go() {
-	mkdir --parents "${go_install_dir}"
+	downloaded_file="$1"
+	destination_path="$2"
+	mkdir --parents "${destination_path}"
 	# Using short options with tar for macOS compatibility
-	if ! gunzip --stdout "${go_downloaded_file}" | tar -C "${go_install_dir}" -x; then
-		fail 15 "Failed to extract \"${go_downloaded_file}\" to \"${go_install_dir}\""
+	if ! gunzip --stdout "${downloaded_file}" | tar -C "${destination_path}" -x; then
+		fail 15 "Failed to extract \"${downloaded_file}\" to \"${destination_path}\""
 	fi
-	# Go gives us ${go_install_dir}/go/...
-	# Move the ... to ${go_install_dir}
+	# Go gives us ${destination_path}/go/...
+	# Move the ... to ${destination_path}
 	# (This is easier than trying to deal with transforming file names
 	# during extraction.
-	mv "${go_install_dir}"/go/* "${go_install_dir}"
-	rmdir "${go_install_dir}/go"
-	printf 'GOROOT=%s\n' "${go_install_dir}" >>"${build_tools_env_file}"
+	mv "${destination_path}"/go/* "${destination_path}"
+	rmdir "${destination_path}/go"
 }
 
 # Print an error to stderr and exit
@@ -218,4 +218,4 @@ check_for_existing_installation "${go_install_dir}"
 create_download_cache_dir
 download_go "${go_download_url}" "${go_downloaded_file}"
 verify_sha256 "${go_expected_sha256}" "${go_downloaded_file}"
-extract_go
+extract_go "${go_downloaded_file}" "${go_install_dir}"

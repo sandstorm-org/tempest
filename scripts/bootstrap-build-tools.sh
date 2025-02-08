@@ -32,6 +32,7 @@
 # 13 - Prerequisite sleep is missing.
 # 14 - Prerequisite tar is missing.
 # 15 - Failed to extract Go from Go release archive.
+# 16 - Existing Go installation detected
 
 # User settings
 [ -z "${DOWNLOAD_CACHE_DIR}" ] && DOWNLOAD_CACHE_DIR="${HOME}/.cache/tempest-build-tools/downloads"
@@ -47,6 +48,13 @@ go_download_url="https://go.dev/dl/${go_destination_file}"
 go_expected_sha256="a0afb9744c00648bafb1b90b4aba5bdb86f424f02f9275399ce0c20b93a2c3a8"
 go_downloaded_file="${DOWNLOAD_CACHE_DIR}/${go_destination_file}"
 go_install_dir="${build_tools_dir}/go-${go_version}"
+
+check_for_existing_installation() {
+	install_dir="$1"
+	if [ -d "$install_dir" ]; then
+		fail 16 "Existing Go installation found at \"${install_dir}\""
+	fi
+}
 
 # Ensure that the system has the command necessary to run this script.
 check_for_prerequisites() {
@@ -206,6 +214,7 @@ wait_delay() {
 
 #trap cleanup HUP INT QUIT ABRT
 check_for_prerequisites
+check_for_existing_installation "${go_install_dir}"
 create_download_cache_dir
 download_go "${go_download_url}" "${go_downloaded_file}"
 verify_sha256 "${go_expected_sha256}" "${go_downloaded_file}"

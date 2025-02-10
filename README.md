@@ -7,16 +7,36 @@ from the outside, though some http features are not yet implemented.
 
 # Building
 
-To build tempest, you will need:
+## Dependencies
 
-- Go 1.20 or later
-- [tinygo](https://tinygo.org/)
-  - If the build complains about missing `wasm-opt`, you may also need
-    to install the `binaryen` package.
-- Standard C development tools (make, a C compiler, etc).
-- The `bpf_asm` command, included in the linux kernel source tree.
-- capnp (command line tool) version 0.8 or later.
-- capnpc-go code generator plugin
+Building Tempest requires that you have the following available on your Linux system:
+
+- [curl](https://curl.se)
+- [Git](https://git-scm.com)
+- `gunzip`
+- `make`
+- `mkdir`
+- a POSIX-compatible shell
+- `printf`
+- `sha256sum` or `shasum`
+- `rm`
+- `sleep`
+- `tar`
+
+The (work-in-progress) build tools will (eventually) download the following dependencies:
+
+- [Bison](https://www.gnu.org/software/bison/)
+- `bpf_asm` from [the Linux kernel source tree](https://github.com/torvalds/linux/tree/master/tools/bpf)
+- [capnpc-go](https://github.com/capnproto/go-capnp)
+- [Cap'n Proto](https://capnproto.org/)
+- [Clang](https://clang.llvm.org/)
+- [flex](https://github.com/westes/flex)
+- [Go](https://go.dev/)
+- [TinyGo](https://tinygo.org/)
+
+## Build Instructions
+
+(This section will be removed when the build-tool handle these tasks.)
 
 `bpf_asm` is not packaged in all distributions; if your distro does
 not have a package for it, you can install it from source. You will

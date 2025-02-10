@@ -35,18 +35,18 @@
 # 16 - Existing Go installation detected
 
 # User settings
-[ -z "${DOWNLOAD_CACHE_DIR}" ] && DOWNLOAD_CACHE_DIR="${HOME}/.cache/tempest-build-tools/downloads"
-[ -z "${DOWNLOAD_USER_AGENT}" ] && DOWNLOAD_USER_AGENT="tempest-bootstrap-build-tools"
+[ -z "${DOWNLOAD_CACHE_DIR}" ] && DOWNLOAD_CACHE_DIR="${HOME}/.cache/tempest-build-tool/downloads"
+[ -z "${DOWNLOAD_USER_AGENT}" ] && DOWNLOAD_USER_AGENT="tempest-bootstrap-build-tool"
 
 script_dir="$(cd "$(dirname "$0")" && pwd)"
-build_tools_dir="$(cd "${script_dir}"/.. && pwd)/build-tools"
+toolchain_dir="$(cd "${script_dir}"/.. && pwd)/toolchain"
 
 go_version="1.23.3"
 go_destination_file="go${go_version}.linux-amd64.tar.gz"
 go_download_url="https://go.dev/dl/${go_destination_file}"
 go_expected_sha256="a0afb9744c00648bafb1b90b4aba5bdb86f424f02f9275399ce0c20b93a2c3a8"
 go_downloaded_file="${DOWNLOAD_CACHE_DIR}/${go_destination_file}"
-go_install_dir="${build_tools_dir}/go-${go_version}"
+go_install_dir="${toolchain_dir}/go-${go_version}"
 
 check_for_existing_installation() {
 	install_dir="$1"
@@ -81,11 +81,6 @@ check_for_prerequisites() {
 		fail 14 "The tar command, required to use this script, is not found."
 	fi
 }
-
-# Clean up after the script
-#cleanup() {
-#	printf '%s' "Nothing to clean"
-#}
 
 # Create the download cache directory if it does not exist.
 create_download_cache_dir() {

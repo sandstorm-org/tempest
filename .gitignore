@@ -1,16 +1,13 @@
 .vagrant
 /config.json
 /_build
-/build-tools
+/toolchain
 
 # Default path for the mongo import/export; easy to accidentally commit:
 mongo-snapshot
 
 # Binary output of capnp compile
 *.cgr
-
-# Generated capnp outputs:
-*.capnp.go
 
 # Coverage profiles and the like
 *.out

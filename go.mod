@@ -1,6 +1,8 @@
 module sandstorm.org/go/tempest
 
-go 1.20
+go 1.22
+
+toolchain go1.23.3
 
 // NOTE: this *must not* be updated to v1.11; that version drops support for
 // version 2 of the wire protocol, which is the most recent supported by the
@@ -9,16 +11,19 @@ require go.mongodb.org/mongo-driver v1.10.0
 
 require (
 	capnproto.org/go/capnp/v3 v3.0.0-alpha-29.0.20230703112659-e4708d081d4b
+	github.com/BurntSushi/toml v0.3.1
+	github.com/alecthomas/kong v1.8.0
 	github.com/go-acme/lego/v4 v4.8.0
 	github.com/gobwas/ws v1.1.0
 	github.com/gorilla/mux v1.8.0
 	github.com/mattn/go-sqlite3 v1.14.16
-	github.com/stretchr/testify v1.8.2
+	github.com/schollz/progressbar/v3 v3.18.0
+	github.com/stretchr/testify v1.9.0
 	github.com/tj/assert v0.0.3
 	github.com/ulikunitz/xz v0.5.10
 	golang.org/x/crypto v0.5.0
 	golang.org/x/exp v0.0.0-20230321023759-10a507213a29
-	golang.org/x/sys v0.7.0
+	golang.org/x/sys v0.29.0
 	zenhack.net/go/jsapi v0.0.0-20230418065259-200f45ece3f9
 	zenhack.net/go/tea v0.0.0-20230524023758-356c069b5d8c
 	zenhack.net/go/util v0.0.0-20230607025951-8b02fee814ae
@@ -87,9 +92,10 @@ require (
 	github.com/liquidweb/go-lwApi v0.0.5 // indirect
 	github.com/liquidweb/liquidweb-cli v0.6.9 // indirect
 	github.com/liquidweb/liquidweb-go v1.6.3 // indirect
-	github.com/mattn/go-isatty v0.0.17 // indirect
+	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/miekg/dns v1.1.50 // indirect
 	github.com/mimuret/golang-iij-dpf v0.7.1 // indirect
+	github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
@@ -110,6 +116,7 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/pquerna/otp v1.3.0 // indirect
+	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/sacloud/libsacloud v1.36.2 // indirect
 	github.com/scaleway/scaleway-sdk-go v1.0.0-beta.9 // indirect
 	github.com/sirupsen/logrus v1.8.1 // indirect
@@ -117,7 +124,7 @@ require (
 	github.com/softlayer/softlayer-go v1.0.6 // indirect
 	github.com/softlayer/xmlrpc v0.0.0-20200409220501-5f089df7cb7e // indirect
 	github.com/spf13/cast v1.3.1 // indirect
-	github.com/stretchr/objx v0.5.0 // indirect
+	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.0.490 // indirect
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/dnspod v1.0.490 // indirect
 	github.com/transip/gotransip/v6 v6.17.0 // indirect
@@ -133,6 +140,7 @@ require (
 	golang.org/x/net v0.5.0 // indirect
 	golang.org/x/oauth2 v0.4.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
+	golang.org/x/term v0.28.0 // indirect
 	golang.org/x/text v0.6.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	golang.org/x/tools v0.2.0 // indirect

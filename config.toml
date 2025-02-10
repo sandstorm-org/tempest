@@ -1,0 +1,22 @@
+# Paths are relative to the folder that holds this configuration file.
+
+[tempest]
+User = "sandstorm"
+Group = "sandstorm"
+
+[build-tool]
+# DownloadDirTemplate supports the Home template variable, i.e., {{ .Home }}
+# will expand to the current user's home directory.
+DownloadDirTemplate = "{{ .Home }}/.cache/tempest-build-tool/downloads"
+
+DownloadUserAgent = "tempest-build-tool"
+
+# ToolChainDirTemplate supports the Home template variable.
+ToolChainDirTemplate = "toolchain"
+
+[build-tool.tinygo]
+# Use DownloadUrl to override the DownloadUrlTemplate in downloads.toml.
+#DownloadUrl = "https://github.com/tinygo-org/tinygo/releases/download/v0.35.0/tinygo0.35.0.linux-amd64.tar.gz"
+
+# Use Version to override the PreferredVersion in downloads.toml.
+#Version = "0.35.0"

@@ -27,7 +27,7 @@ Building Tempest requires that you have the following available on your Linux sy
 
 ### Via Build Tool
 
-The build tool will eventually take care of the entire process of installing the remaining dependencies and building Tempest. However it is in progress, so it will only take care of the first part of the build process.
+The build tool will eventually take care of the entire process of installing the remaining dependencies and building Tempest. However it is in progress (see #2), so it will only take care of the first part of the build process.
 
 Run `make toolchain` to install the following dependencies (using the in-progress build tool):
 

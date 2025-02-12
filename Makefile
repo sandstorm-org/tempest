@@ -106,7 +106,7 @@ toolchain: $(GO) $(TINYGO)
 
 $(BUILDTOOL): $(GO)
 	$(GO_GET) ./internal/build-tool
-	$(GO_BUILD) -o $(BUILDTOOL) $(BUILDTOOL_SOURCE)
+	$(GO_BUILD) -o $(BUILDTOOL) $(BUILDTOOL_MAIN)
 
 $(GO):
 	@echo Setting up Go $(GO_VERSION)

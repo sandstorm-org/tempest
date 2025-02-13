@@ -29,7 +29,7 @@ Building Tempest requires that you have the following available on your Linux sy
 
 The build tool will eventually take care of the entire process of installing the remaining dependencies and building Tempest. However it is in progress (see https://github.com/sandstorm-org/tempest/issues/2), so it will only take care of the first part of the build process.
 
-Run `make toolchain` to install the following dependencies (using the in-progress build tool):
+Run `make toolchain` to install the following dependencies:
 
 - [Go](https://go.dev/)
 - [TinyGo](https://tinygo.org/)

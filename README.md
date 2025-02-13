@@ -34,15 +34,28 @@ Run `make toolchain` to install the following dependencies (using the in-progres
 - [Go](https://go.dev/)
 - [TinyGo](https://tinygo.org/)
 
-For now, you will need to manually copy the newly installed Go into a usual location. (Once the build tool is complete, this step will not be necessary)
+#### Additional Steps
+
+For now (until the build tool is complete), you will need to take a couple manual steps.
+
+First, set the PATH to the newly installed Go and TinyGo (replacng x.y.z with the correct version in each):
 
 ```
-sudo cp -r ./toolchain/go-* /usr/local/go
-PATH="/usr/local/go/bin:$PATH"
-go version # confirm that go is installed
+PATH=/path/to/tempest/toolchain/go-x.y.z/bin:/path/to/tempest/toolchain/tinygo-x.y.z/bin:$PATH
+go version # confirm that go is available
+tiny version # confirm that tinygo is available
 ```
 
-(and add the `PATH=` line to `.bashrc` or `.profile` if you want to continue using it in new sessions)
+You can add the `PATH=` line to `.bashrc` or `.profile` if you want to continue using it in new sessions.
+
+You will also need to copy this file:
+
+```
+cd toolchain/tinygo-0.35.0/
+mkdir -p lib/tinygo/targets
+cp -i targets/wasm_exec.js lib/tinygo/targets/
+cd -
+```
 
 ### Manual Install
 

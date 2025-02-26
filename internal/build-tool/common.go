@@ -12,9 +12,11 @@ import (
 	"net/http"
 	"os"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/schollz/progressbar/v3"
+	"github.com/xi2/xz"
 )
 
 func downloadUrlToDir(downloadUrl string, downloadDir string, downloadPath string) error {
@@ -53,23 +55,20 @@ func ensureDownloadDirExists(downloadDir string) error {
 	return err
 }
 
+func ensureTrailingSlash(filePath string) string {
+	if strings.HasSuffix(filePath, string(os.PathSeparator)) {
+		return filePath
+	}
+	return filePath + string(os.PathSeparator)
+}
+
 // Filter files by their names
 type fileFilter func(string) bool
 
 // Transform file names before writing them
 type fileTransformer func(string) string
 
-func extractTarGz(tgzArchive string, filter fileFilter, transform fileTransformer) error {
-	tgzFile, err := os.Open(tgzArchive)
-	if err != nil {
-		return err
-	}
-	defer tgzFile.Close()
-	gzipReader, err := gzip.NewReader(tgzFile)
-	if err != nil {
-		return err
-	}
-	tarReader := tar.NewReader(gzipReader)
+func extractTar(tarReader *tar.Reader, fileName string, filter fileFilter, transform fileTransformer) error {
 	// Save directory access and modification times to update at the end.
 	type dirTime struct {
 		dirName          string
@@ -121,7 +120,7 @@ func extractTarGz(tgzArchive string, filter fileFilter, transform fileTransforme
 				return fmt.Errorf("File in archive has unexpected path: %s", next.Name)
 			}
 		} else {
-			return fmt.Errorf("Unexpected type in tar header: %s (%s)", next.Typeflag, tgzArchive)
+			return fmt.Errorf("Unexpected type in tar header: %s (%s)", next.Typeflag, fileName)
 		}
 	}
 	// Fix the directory access times and modification times
@@ -134,6 +133,36 @@ func extractTarGz(tgzArchive string, filter fileFilter, transform fileTransforme
 		}
 	}
 	return nil
+}
+
+func extractTarGz(tgzArchive string, filter fileFilter, transform fileTransformer) error {
+	tgzFile, err := os.Open(tgzArchive)
+	if err != nil {
+		return err
+	}
+	defer tgzFile.Close()
+	gzipReader, err := gzip.NewReader(tgzFile)
+	if err != nil {
+		return err
+	}
+	tarReader := tar.NewReader(gzipReader)
+	err = extractTar(tarReader, tgzArchive, filter, transform)
+	return err
+}
+
+func extractTarXz(txzArchive string, filter fileFilter, transform fileTransformer) error {
+	txzFile, err := os.Open(txzArchive)
+	if err != nil {
+		return err
+	}
+	defer txzFile.Close()
+	xzReader, err := xz.NewReader(txzFile, 0)
+	if err != nil {
+		return err
+	}
+	tarReader := tar.NewReader(xzReader)
+	err = extractTar(tarReader, txzArchive, filter, transform)
+	return err
 }
 
 func fileExistsAtPath(filePath string) (bool, error) {

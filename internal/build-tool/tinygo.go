@@ -142,10 +142,11 @@ func getTinyGoConfig(buildToolConfig *RuntimeConfigBuildTool) (*tinyGoConfig, er
 }
 
 func transformTinyGoTarGz(destinationDir string, filePath string) string {
-	return destinationDir + filePath[6:]
+	return filepath.Join(destinationDir, filePath[6:])
 }
 
 func transformTinyGoTarGzFactory(destinationDir string) fileTransformer {
+	destinationDir = ensureTrailingSlash(destinationDir)
 	return func(filePath string) string {
 		return transformTinyGoTarGz(destinationDir, filePath)
 	}

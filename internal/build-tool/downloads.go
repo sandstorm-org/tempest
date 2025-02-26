@@ -5,7 +5,15 @@ import (
 )
 
 type DownloadsTomlTopLevel struct {
+	Bison  DownloadsTomlBison  `toml:"bison"`
 	TinyGo DownloadsTomlTinyGo `toml:"tinygo"`
+}
+
+type DownloadsTomlBison struct {
+	DownloadUrlTemplate string
+	FilenameTemplate    string
+	Files               map[string]DownloadsTomlFile
+	PreferredVersion    string
 }
 
 type DownloadsTomlTinyGo struct {

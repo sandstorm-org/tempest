@@ -14,6 +14,13 @@ DownloadUserAgent = "tempest-build-tool"
 # ToolChainDirTemplate supports the Home template variable.
 ToolChainDirTemplate = "toolchain"
 
+[build-tool.bison]
+# Use DownloadUrl to override the DownloadUrlTemplate in downloads.toml.
+#DownloadUrl = "https://ftpmirrors.gnu.org/bison/bison-3.18.2.tar.xz"
+
+# Use Version to override the PreferredVersion in downloads.toml.
+#Version = "3.18.2"
+
 [build-tool.tinygo]
 # Use DownloadUrl to override the DownloadUrlTemplate in downloads.toml.
 #DownloadUrl = "https://github.com/tinygo-org/tinygo/releases/download/v0.35.0/tinygo0.35.0.linux-amd64.tar.gz"

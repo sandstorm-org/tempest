@@ -1,3 +1,12 @@
+[bison]
+DownloadUrlTemplate = "https://ftpmirror.gnu.org/bison/{{ .Filename }}"
+FilenameTemplate = "bison-{{ .Version }}.tar.xz"
+PreferredVersion = "3.8.2"
+
+[bison.files."bison-3.8.2.tar.xz"]
+SHA-256 = "9bba0214ccf7f1079c5d59210045227bcf619519840ebfa80cd3849cff5a5bf2"
+Size = 2817324
+
 [tinygo]
 DownloadUrlTemplate = "https://github.com/tinygo-org/tinygo/releases/download/v{{ .Version }}/{{ .Filename }}"
 FilenameTemplate = "tinygo{{ .Version }}.linux-{{ .Arch }}.tar.gz"

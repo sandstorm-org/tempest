@@ -30,7 +30,13 @@ type ConfigTomlBuildTool struct {
 	DownloadDirTemplate  string
 	DownloadUserAgent    string
 	DownloadsFile        string
+	Bison                ConfigTomlBison  `toml:"bison"`
 	TinyGo               ConfigTomlTinyGo `toml:"tinygo"`
+}
+
+type ConfigTomlBison struct {
+	DownloadUrl string
+	Version     string
 }
 
 type ConfigTomlTinyGo struct {
@@ -51,7 +57,15 @@ type RuntimeConfigBuildTool struct {
 	toolChainDir      string
 	downloadDir       string
 	downloadUserAgent string
+	bison             *runtimeConfigBison
 	tinyGo            *runtimeConfigTinyGo
+}
+
+type runtimeConfigBison struct {
+	downloadUrlTemplate string
+	filenameTemplate    string
+	files               map[string]runtimeConfigFile
+	version             string
 }
 
 type runtimeConfigTinyGo struct {
@@ -78,27 +92,12 @@ func BuildConfiguration(configFile *ConfigTomlTopLevel, downloadsFile *Downloads
 		return nil, err
 	}
 	config.downloadUserAgent = configFile.BuildTool.DownloadUserAgent
+	config.bison = new(runtimeConfigBison)
+	err = populateBisonRuntimeConfig(config.bison, &configFile.BuildTool.Bison, &downloadsFile.Bison)
 	config.tinyGo = new(runtimeConfigTinyGo)
-	if configFile.BuildTool.TinyGo.DownloadUrl != "" {
-		config.tinyGo.downloadUrlTemplate = configFile.BuildTool.TinyGo.DownloadUrl
-	} else {
-		config.tinyGo.downloadUrlTemplate = downloadsFile.TinyGo.DownloadUrlTemplate
-	}
-	config.tinyGo.filenameTemplate = downloadsFile.TinyGo.FilenameTemplate
-	if configFile.BuildTool.TinyGo.Version != "" {
-		config.tinyGo.version = configFile.BuildTool.TinyGo.Version
-	} else {
-		config.tinyGo.version = downloadsFile.TinyGo.PreferredVersion
-	}
-	if config.tinyGo.version == "" {
-		return nil, fmt.Errorf("TinyGo has no configured version")
-	}
-	config.tinyGo.files = make(map[string]runtimeConfigFile)
-	for fileName, fileStruct := range downloadsFile.TinyGo.Files {
-		config.tinyGo.files[fileName] = runtimeConfigFile{
-			fileStruct.Sha256,
-			fileStruct.Size,
-		}
+	err = populateTinyGoRuntimeConfig(config.tinyGo, &configFile.BuildTool.TinyGo, &downloadsFile.TinyGo)
+	if err != nil {
+		return nil, err
 	}
 	return config, nil
 }
@@ -129,4 +128,54 @@ func LoadConfigFile(configFilePath *string) (*ConfigTomlTopLevel, error) {
 	config := new(ConfigTomlTopLevel)
 	_, err := toml.DecodeFile(*configFilePath, config)
 	return config, err
+}
+
+func populateBisonRuntimeConfig(runtimeConfig *runtimeConfigBison, configFile *ConfigTomlBison, downloadsFile *DownloadsTomlBison) error {
+	if configFile.DownloadUrl != "" {
+		runtimeConfig.downloadUrlTemplate = configFile.DownloadUrl
+	} else {
+		runtimeConfig.downloadUrlTemplate = downloadsFile.DownloadUrlTemplate
+	}
+	runtimeConfig.filenameTemplate = downloadsFile.FilenameTemplate
+	if configFile.Version != "" {
+		runtimeConfig.version = configFile.Version
+	} else {
+		runtimeConfig.version = downloadsFile.PreferredVersion
+	}
+	if runtimeConfig.version == "" {
+		return fmt.Errorf("Bison has no configured version")
+	}
+	runtimeConfig.files = make(map[string]runtimeConfigFile)
+	for fileName, fileStruct := range downloadsFile.Files {
+		runtimeConfig.files[fileName] = runtimeConfigFile{
+			fileStruct.Sha256,
+			fileStruct.Size,
+		}
+	}
+	return nil
+}
+
+func populateTinyGoRuntimeConfig(runtimeConfig *runtimeConfigTinyGo, configFile *ConfigTomlTinyGo, downloadsFile *DownloadsTomlTinyGo) error {
+	if configFile.DownloadUrl != "" {
+		runtimeConfig.downloadUrlTemplate = configFile.DownloadUrl
+	} else {
+		runtimeConfig.downloadUrlTemplate = downloadsFile.DownloadUrlTemplate
+	}
+	runtimeConfig.filenameTemplate = downloadsFile.FilenameTemplate
+	if configFile.Version != "" {
+		runtimeConfig.version = configFile.Version
+	} else {
+		runtimeConfig.version = downloadsFile.PreferredVersion
+	}
+	if runtimeConfig.version == "" {
+		return fmt.Errorf("TinyGo has no configured version")
+	}
+	runtimeConfig.files = make(map[string]runtimeConfigFile)
+	for fileName, fileStruct := range downloadsFile.Files {
+		runtimeConfig.files[fileName] = runtimeConfigFile{
+			fileStruct.Sha256,
+			fileStruct.Size,
+		}
+	}
+	return nil
 }

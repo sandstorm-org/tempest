@@ -5,12 +5,15 @@
 BUILDTOOL := _build/build-tool
 BUILDTOOL_MAIN := cmd/build-tool/main.go
 BUILDTOOL_PACKAGE := \
+		     internal/build-tool/bison.go \
 		     internal/build-tool/common.go \
 		     internal/build-tool/config.go \
 		     internal/build-tool/downloads.go \
 		     internal/build-tool/tinygo.go \
 
 TOOLCHAIN_DIR := ./toolchain
+BISON_VERSION := 3.8.2
+BISON := $(TOOLCHAIN_DIR)/bison-$(BISON_VERSION)/tests/bison
 GO_VERSION := 1.23.3
 GO := $(TOOLCHAIN_DIR)/go-$(GO_VERSION)/bin/go
 GO_BUILD := $(GO) build
@@ -102,7 +105,11 @@ check: all
 #
 
 .PHONY: toolchain
-toolchain: $(GO) $(TINYGO)
+toolchain: $(BISON) $(GO) $(TINYGO)
+
+$(BISON): $(BUILDTOOL)
+	@echo Building Bison $(BISON_VERSION)
+	$(BUILDTOOL) bootstrap-bison
 
 $(BUILDTOOL): $(GO)
 	$(GO_GET) ./internal/build-tool

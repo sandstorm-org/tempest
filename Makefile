@@ -14,6 +14,8 @@ BUILDTOOL_PACKAGE := \
 TOOLCHAIN_DIR := ./toolchain
 BISON_VERSION := 3.8.2
 BISON := $(TOOLCHAIN_DIR)/bison-$(BISON_VERSION)/tests/bison
+FLEX_VERSION := 2.6.4
+FLEX := $(TOOLCHAIN_DIR)/flex-$(FLEX_VERSION)/src/flex
 GO_VERSION := 1.23.3
 GO := $(TOOLCHAIN_DIR)/go-$(GO_VERSION)/bin/go
 GO_BUILD := $(GO) build
@@ -114,6 +116,10 @@ $(BISON): $(BUILDTOOL)
 $(BUILDTOOL): $(GO)
 	$(GO_GET) ./internal/build-tool
 	$(GO_BUILD) -o $(BUILDTOOL) $(BUILDTOOL_MAIN)
+
+$(FLEX): $(BUILDTOOL)
+	@echo Building Flex $(FLEX_VERSION)
+	$(BUILDTOOL) bootstrap-flex
 
 $(GO):
 	@echo Setting up Go $(GO_VERSION)

@@ -31,10 +31,16 @@ type ConfigTomlBuildTool struct {
 	DownloadUserAgent    string
 	DownloadsFile        string
 	Bison                ConfigTomlBison  `toml:"bison"`
+	Flex                 ConfigTomlFlex   `toml:"flex"`
 	TinyGo               ConfigTomlTinyGo `toml:"tinygo"`
 }
 
 type ConfigTomlBison struct {
+	DownloadUrl string
+	Version     string
+}
+
+type ConfigTomlFlex struct {
 	DownloadUrl string
 	Version     string
 }
@@ -58,10 +64,18 @@ type RuntimeConfigBuildTool struct {
 	downloadDir       string
 	downloadUserAgent string
 	bison             *runtimeConfigBison
+	flex              *runtimeConfigFlex
 	tinyGo            *runtimeConfigTinyGo
 }
 
 type runtimeConfigBison struct {
+	downloadUrlTemplate string
+	filenameTemplate    string
+	files               map[string]runtimeConfigFile
+	version             string
+}
+
+type runtimeConfigFlex struct {
 	downloadUrlTemplate string
 	filenameTemplate    string
 	files               map[string]runtimeConfigFile
@@ -94,6 +108,8 @@ func BuildConfiguration(configFile *ConfigTomlTopLevel, downloadsFile *Downloads
 	config.downloadUserAgent = configFile.BuildTool.DownloadUserAgent
 	config.bison = new(runtimeConfigBison)
 	err = populateBisonRuntimeConfig(config.bison, &configFile.BuildTool.Bison, &downloadsFile.Bison)
+	config.flex = new(runtimeConfigFlex)
+	err = populateFlexRuntimeConfig(config.flex , &configFile.BuildTool.Flex, &downloadsFile.Flex)
 	config.tinyGo = new(runtimeConfigTinyGo)
 	err = populateTinyGoRuntimeConfig(config.tinyGo, &configFile.BuildTool.TinyGo, &downloadsFile.TinyGo)
 	if err != nil {
@@ -144,6 +160,31 @@ func populateBisonRuntimeConfig(runtimeConfig *runtimeConfigBison, configFile *C
 	}
 	if runtimeConfig.version == "" {
 		return fmt.Errorf("Bison has no configured version")
+	}
+	runtimeConfig.files = make(map[string]runtimeConfigFile)
+	for fileName, fileStruct := range downloadsFile.Files {
+		runtimeConfig.files[fileName] = runtimeConfigFile{
+			fileStruct.Sha256,
+			fileStruct.Size,
+		}
+	}
+	return nil
+}
+
+func populateFlexRuntimeConfig(runtimeConfig *runtimeConfigFlex, configFile *ConfigTomlFlex, downloadsFile *DownloadsTomlFlex) error {
+	if configFile.DownloadUrl != "" {
+		runtimeConfig.downloadUrlTemplate = configFile.DownloadUrl
+	} else {
+		runtimeConfig.downloadUrlTemplate = downloadsFile.DownloadUrlTemplate
+	}
+	runtimeConfig.filenameTemplate = downloadsFile.FilenameTemplate
+	if configFile.Version != "" {
+		runtimeConfig.version = configFile.Version
+	} else {
+		runtimeConfig.version = downloadsFile.PreferredVersion
+	}
+	if runtimeConfig.version == "" {
+		return fmt.Errorf("Flex has no configured version")
 	}
 	runtimeConfig.files = make(map[string]runtimeConfigFile)
 	for fileName, fileStruct := range downloadsFile.Files {

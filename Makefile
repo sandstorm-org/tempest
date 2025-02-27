@@ -62,15 +62,19 @@ clean:
 	find * -type d -empty -delete
 	rm -f $(BUILDTOOL)
 
+.PHONY: clean-build-tool-cache
+clean-build-tool-cache:
+	# Used by scripts/bootstrap-build-tool.sh, cmd/build-tool and
+	# internal/build-tool
+	if [ -n "${HOME}" ]; then rm -rf "${HOME}/.cache/tempest-build-tool"; fi
+
 .PHONY: clean-toolchain
 clean-toolchain:
 	rm -rf $(TOOLCHAIN_DIR)
 
 .PHONY: nuke
-nuke: clean clean-toolchain
+nuke: clean clean-build-tool-cache clean-toolchain
 	rm -f config.json
-	# Used by scripts/bootstrap-build-tool.sh
-	if [ -n "${HOME}" ]; then rm -rf "${HOME}/.cache/tempest-build-tool"; fi
 
 #
 # Development Targets

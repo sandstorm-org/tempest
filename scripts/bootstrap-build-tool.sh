@@ -32,7 +32,7 @@
 # 13 - Prerequisite sleep is missing.
 # 14 - Prerequisite tar is missing.
 # 15 - Failed to extract Go from Go release archive.
-# 16 - Existing Go installation detected
+# 16 - Existing Go installation detected.
 # 17 - Failed to remove the (created) SHA256SUMS file.
 
 # User settings
@@ -94,7 +94,7 @@ download_go() {
 	download_to_file="$2"
 	if [ ! -f "${download_to_file}" ]; then
 		if [ -e "${download_to_file}" ]; then
-			fail 3 "Go release path exists but is not a normal file"
+			fail 3 "Go release path exists but is not a normal file."
 		fi
 		printf 'Downloading %s' "${download_url}"
 		retryable_curl "${download_url}" "${download_to_file}"
@@ -109,7 +109,7 @@ extract_go() {
 	mkdir --parents "${destination_path}"
 	# Using short options with tar for macOS compatibility
 	if ! gunzip --stdout "${downloaded_file}" | tar -C "${destination_path}" -x; then
-		fail 15 "Failed to extract \"${downloaded_file}\" to \"${destination_path}\""
+		fail 15 "Failed to extract \"${downloaded_file}\" to \"${destination_path}\"."
 	fi
 	# Go gives us ${destination_path}/go/...
 	# Move the ... to ${destination_path}
@@ -183,7 +183,7 @@ verify_sha256() {
 
 	# Check the SHA-256 value.
 	pwd=$(pwd)
-	cd "${file_dir}" || fail 2 "Failed to change to download directory"
+	cd "${file_dir}" || fail 2 "Failed to change to download directory."
 	if command -v sha256sum >/dev/null 2>/dev/null; then
 		sha256sum --check "${sha256sum_path}"
 		sha256_rc=$?
@@ -194,10 +194,10 @@ verify_sha256() {
 		fail 11 "The sha256sum or shasum command, required to use this script, is not found."
 	fi
 	if [ "$sha256_rc" -ne 0 ]; then
-		fail 1 "Failed to verify the SHA-256 value for the file ${file_name}"
+		fail 1 "Failed to verify the SHA-256 value for the file ${file_name}."
 	fi
 	rm -f "$sha256sum_path" || fail 17 "Failed to remove (created) SHA256SUMS file."
-	cd "${pwd}" || fail 2 "Failed to return to previous directory"
+	cd "${pwd}" || fail 2 "Failed to return to previous directory."
 }
 
 # Wait

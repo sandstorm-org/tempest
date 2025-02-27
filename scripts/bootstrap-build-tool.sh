@@ -33,6 +33,7 @@
 # 14 - Prerequisite tar is missing.
 # 15 - Failed to extract Go from Go release archive.
 # 16 - Existing Go installation detected
+# 17 - Failed to remove the (created) SHA256SUMS file.
 
 # User settings
 [ -z "${DOWNLOAD_CACHE_DIR}" ] && DOWNLOAD_CACHE_DIR="${HOME}/.cache/tempest-build-tool/downloads"
@@ -195,6 +196,7 @@ verify_sha256() {
 	if [ "$sha256_rc" -ne 0 ]; then
 		fail 1 "Failed to verify the SHA-256 value for the file ${file_name}"
 	fi
+	rm -f "$sha256sum_path" || fail 17 "Failed to remove (created) SHA256SUMS file."
 	cd "${pwd}" || fail 2 "Failed to return to previous directory"
 }
 

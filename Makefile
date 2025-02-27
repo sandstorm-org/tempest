@@ -9,6 +9,7 @@ BUILDTOOL_PACKAGE := \
 		     internal/build-tool/common.go \
 		     internal/build-tool/config.go \
 		     internal/build-tool/downloads.go \
+		     internal/build-tool/flex.go \
 		     internal/build-tool/tinygo.go \
 
 TOOLCHAIN_DIR := ./toolchain

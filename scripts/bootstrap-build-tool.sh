@@ -1,7 +1,7 @@
 #!/usr/bin/sh
 
 # Tempest
-# Copyright (c) 2024 Sandstorm Development Team and contributors
+# Copyright (c) 2024, 2025 Sandstorm Development Team and contributors
 # All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");

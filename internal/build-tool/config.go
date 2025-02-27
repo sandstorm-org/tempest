@@ -109,7 +109,7 @@ func BuildConfiguration(configFile *ConfigTomlTopLevel, downloadsFile *Downloads
 	config.bison = new(runtimeConfigBison)
 	err = populateBisonRuntimeConfig(config.bison, &configFile.BuildTool.Bison, &downloadsFile.Bison)
 	config.flex = new(runtimeConfigFlex)
-	err = populateFlexRuntimeConfig(config.flex , &configFile.BuildTool.Flex, &downloadsFile.Flex)
+	err = populateFlexRuntimeConfig(config.flex, &configFile.BuildTool.Flex, &downloadsFile.Flex)
 	config.tinyGo = new(runtimeConfigTinyGo)
 	err = populateTinyGoRuntimeConfig(config.tinyGo, &configFile.BuildTool.TinyGo, &downloadsFile.TinyGo)
 	if err != nil {

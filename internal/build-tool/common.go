@@ -33,7 +33,7 @@ func downloadUrlToDir(downloadUrl string, downloadDir string, downloadPath strin
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return fmt.Errorf("Response status: %s", response.Status)
+		return fmt.Errorf("GET %s => %s", downloadUrl, response.Status)
 	}
 
 	progressBar := progressbar.DefaultBytes(

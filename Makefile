@@ -112,7 +112,7 @@ check: all
 #
 
 .PHONY: toolchain
-toolchain: $(BISON) $(GO) $(TINYGO)
+toolchain: $(BISON) $(FLEX) $(GO) $(TINYGO)
 
 $(BISON): $(BUILDTOOL)
 	@echo Building Bison $(BISON_VERSION)

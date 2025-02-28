@@ -74,6 +74,21 @@ func BootstrapTinyGo(buildToolConfig *RuntimeConfigBuildTool) ([]string, error) 
 		transformTinyGoTarGz := transformTinyGoTarGzFactory(tinyGoConfig.installDir)
 		err = extractTarGz(downloadPath, filterTinyGoTarGz, transformTinyGoTarGz)
 	}
+	// Update the modified time of the TinyGo executable.
+	// This is a hack to satisfy `make`.
+	// The Makefile looks at the `tinygo` executable.  If its modified time
+	// is current, then make will not invoke the target.  If its modified
+	// time is not updated, then make will extract TinyGo every time the
+	// TinyGo target is invoked.
+	tinyGoBinPath := filepath.Join(tinyGoConfig.installDir, "bin/tinygo")
+	exists, err = fileExistsAtPath(tinyGoBinPath)
+	if err != nil {
+		log.Printf("fileExistsAtPath err\n")
+		return messages, err
+	}
+	if exists {
+		err = setFileModifiedTimeToNow(tinyGoBinPath)
+	}
 	return messages, err
 }
 

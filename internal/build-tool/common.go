@@ -176,6 +176,12 @@ func fileExistsAtPath(filePath string) (bool, error) {
 	return fileInfo != nil, nil
 }
 
+func setFileModifiedTimeToNow(filePath string) error {
+	now := time.Now().Local()
+	err := os.Chtimes(filePath, time.Time{}, now)
+	return err
+}
+
 func verifyFileSize(expectedFileSize int64, pathToVerify string) error {
 	fileInfo, err := os.Stat(pathToVerify)
 	if err != nil {

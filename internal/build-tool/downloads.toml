@@ -28,12 +28,12 @@ Size = 148547124
 [tinygo]
 DownloadUrlTemplate = "https://github.com/tinygo-org/tinygo/releases/download/v{{ .Version }}/{{ .Filename }}"
 FilenameTemplate = "tinygo{{ .Version }}.linux-{{ .Arch }}.tar.gz"
-PreferredVersion = "0.35.0"
+PreferredVersion = "0.36.0"
 
-[tinygo.files."tinygo0.35.0.linux-amd64.tar.gz"]
-SHA-256 = "a6d25bec05e2ee3534ffcda3cb717336a6f4e81e4821296bff7da2fe71bf1678"
-Size = 148831863
+[tinygo.files."tinygo0.36.0.linux-amd64.tar.gz"]
+SHA-256 = "a593f4930d54ae0f6ed47cfc5804e30e50862dc9d3e3f4fc38b93f2ed65380b5"
+Size = 152214324
 
-[tinygo.files."tinygo0.35.0.linux-arm64.tar.gz"]
-SHA-256 = "1fcf322942b5a293079af36cdfac29d545fcd341541424de82a05225b6c77803"
-Size = 146601071
+[tinygo.files."tinygo0.36.0.linux-arm64.tar.gz"]
+SHA-256 = "cfda7c99030e0ef6f9d1a25be476044703b45980e6269a24add2139de24ec0fd"
+Size = 146673758

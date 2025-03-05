@@ -40,4 +40,4 @@ ToolChainDirTemplate = "toolchain"
 #DownloadUrl = "https://github.com/tinygo-org/tinygo/releases/download/v0.35.0/tinygo0.35.0.linux-amd64.tar.gz"
 
 # Use Version to override the PreferredVersion in downloads.toml.
-#Version = "0.35.0"
+#Version = "0.36.0"

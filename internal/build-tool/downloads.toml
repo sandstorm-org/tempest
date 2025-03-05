@@ -16,6 +16,15 @@ PreferredVersion = "2.6.4"
 SHA-256 = "e87aae032bf07c26f85ac0ed3250998c37621d95f8bd748b31f15b33c45ee995"
 Size = 1419096
 
+[linux]
+DownloadUrlTemplate = "https://cdn.kernel.org/pub/linux/kernel/v{{ .MajorVersion }}.x/{{ .Filename }}"
+filenameTemplate = "linux-{{ .Version }}.tar.xz"
+PreferredVersion = "6.13.5"
+
+[linux.files."linux-6.13.5.tar.xz"]
+SHA-256 = "283ecb0784f3fbc16dd822fb1d9642e230ec7515ed33f120e551b839f355e6e2"
+Size = 148547124
+
 [tinygo]
 DownloadUrlTemplate = "https://github.com/tinygo-org/tinygo/releases/download/v{{ .Version }}/{{ .Filename }}"
 FilenameTemplate = "tinygo{{ .Version }}.linux-{{ .Arch }}.tar.gz"

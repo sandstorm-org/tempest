@@ -13,6 +13,7 @@ const DefaultDownloadsFilePath = "./internal/build-tool/downloads.toml"
 
 var CLI struct {
 	BootstrapBison  struct{} `cmd:"" help:"Bootstrap Bison"`
+	BootstrapBpfAsm struct{} `cmd:"" help:"Bootstrap bpf_asm" name:"bootstrap-bpf_asm"`
 	BootstrapFlex   struct{} `cmd:"" help:"Bootstrap Flex"`
 	BootstrapTinygo struct{} `cmd:"" help:"Bootstrap TinyGo"`
 
@@ -32,6 +33,13 @@ func main() {
 	switch context.Command() {
 	case "bootstrap-bison":
 		messages, err := buildtool.BootstrapBison(config)
+		logMessages(CLI.Verbose, messages)
+		if err != nil {
+			log.Fatal(err)
+		}
+		break
+	case "bootstrap-bpf_asm":
+		messages, err := buildtool.BootstrapBpfAsm(config)
 		logMessages(CLI.Verbose, messages)
 		if err != nil {
 			log.Fatal(err)

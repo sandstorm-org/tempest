@@ -32,6 +32,7 @@ type ConfigTomlBuildTool struct {
 	DownloadsFile        string
 	Bison                ConfigTomlBison  `toml:"bison"`
 	Flex                 ConfigTomlFlex   `toml:"flex"`
+	Linux                ConfigTomlLinux  `toml:"linux"`
 	TinyGo               ConfigTomlTinyGo `toml:"tinygo"`
 }
 
@@ -41,6 +42,11 @@ type ConfigTomlBison struct {
 }
 
 type ConfigTomlFlex struct {
+	DownloadUrl string
+	Version     string
+}
+
+type ConfigTomlLinux struct {
 	DownloadUrl string
 	Version     string
 }
@@ -65,10 +71,18 @@ type RuntimeConfigBuildTool struct {
 	downloadUserAgent string
 	bison             *runtimeConfigBison
 	flex              *runtimeConfigFlex
+	linux             *runtimeConfigLinux
 	tinyGo            *runtimeConfigTinyGo
 }
 
 type runtimeConfigBison struct {
+	downloadUrlTemplate string
+	filenameTemplate    string
+	files               map[string]runtimeConfigFile
+	version             string
+}
+
+type runtimeConfigLinux struct {
 	downloadUrlTemplate string
 	filenameTemplate    string
 	files               map[string]runtimeConfigFile
@@ -108,8 +122,19 @@ func BuildConfiguration(configFile *ConfigTomlTopLevel, downloadsFile *Downloads
 	config.downloadUserAgent = configFile.BuildTool.DownloadUserAgent
 	config.bison = new(runtimeConfigBison)
 	err = populateBisonRuntimeConfig(config.bison, &configFile.BuildTool.Bison, &downloadsFile.Bison)
+	if err != nil {
+		return nil, err
+	}
 	config.flex = new(runtimeConfigFlex)
 	err = populateFlexRuntimeConfig(config.flex, &configFile.BuildTool.Flex, &downloadsFile.Flex)
+	if err != nil {
+		return nil, err
+	}
+	config.linux = new(runtimeConfigLinux)
+	err = populateLinuxRuntimeConfig(config.linux, &configFile.BuildTool.Linux, &downloadsFile.Linux)
+	if err != nil {
+		return nil, err
+	}
 	config.tinyGo = new(runtimeConfigTinyGo)
 	err = populateTinyGoRuntimeConfig(config.tinyGo, &configFile.BuildTool.TinyGo, &downloadsFile.TinyGo)
 	if err != nil {
@@ -185,6 +210,31 @@ func populateFlexRuntimeConfig(runtimeConfig *runtimeConfigFlex, configFile *Con
 	}
 	if runtimeConfig.version == "" {
 		return fmt.Errorf("Flex has no configured version")
+	}
+	runtimeConfig.files = make(map[string]runtimeConfigFile)
+	for fileName, fileStruct := range downloadsFile.Files {
+		runtimeConfig.files[fileName] = runtimeConfigFile{
+			fileStruct.Sha256,
+			fileStruct.Size,
+		}
+	}
+	return nil
+}
+
+func populateLinuxRuntimeConfig(runtimeConfig *runtimeConfigLinux, configFile *ConfigTomlLinux, downloadsFile *DownloadsTomlLinux) error {
+	if configFile.DownloadUrl != "" {
+		runtimeConfig.downloadUrlTemplate = configFile.DownloadUrl
+	} else {
+		runtimeConfig.downloadUrlTemplate = downloadsFile.DownloadUrlTemplate
+	}
+	runtimeConfig.filenameTemplate = downloadsFile.FilenameTemplate
+	if configFile.Version != "" {
+		runtimeConfig.version = configFile.Version
+	} else {
+		runtimeConfig.version = downloadsFile.PreferredVersion
+	}
+	if runtimeConfig.version == "" {
+		return fmt.Errorf("Linux has no configured version")
 	}
 	runtimeConfig.files = make(map[string]runtimeConfigFile)
 	for fileName, fileStruct := range downloadsFile.Files {

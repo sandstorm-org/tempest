@@ -7,6 +7,7 @@ import (
 type DownloadsTomlTopLevel struct {
 	Bison  DownloadsTomlBison  `toml:"bison"`
 	Flex   DownloadsTomlFlex   `toml:"flex"`
+	Linux  DownloadsTomlLinux  `toml:"linux"`
 	TinyGo DownloadsTomlTinyGo `toml:"tinygo"`
 }
 
@@ -18,6 +19,13 @@ type DownloadsTomlBison struct {
 }
 
 type DownloadsTomlFlex struct {
+	DownloadUrlTemplate string
+	FilenameTemplate    string
+	Files               map[string]DownloadsTomlFile
+	PreferredVersion    string
+}
+
+type DownloadsTomlLinux struct {
 	DownloadUrlTemplate string
 	FilenameTemplate    string
 	Files               map[string]DownloadsTomlFile

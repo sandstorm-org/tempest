@@ -6,15 +6,19 @@ BUILDTOOL := _build/build-tool
 BUILDTOOL_MAIN := cmd/build-tool/main.go
 BUILDTOOL_PACKAGE := \
 		     internal/build-tool/bison.go \
+		     internal/build-tool/bpf_asm.go \
 		     internal/build-tool/common.go \
 		     internal/build-tool/config.go \
 		     internal/build-tool/downloads.go \
 		     internal/build-tool/flex.go \
+		     internal/build-tool/linux.go \
 		     internal/build-tool/tinygo.go \
 
 TOOLCHAIN_DIR := ./toolchain
 BISON_VERSION := 3.8.2
 BISON := $(TOOLCHAIN_DIR)/bison-$(BISON_VERSION)/tests/bison
+BPF_ASM_VERSION := 6.13.5
+BPF_ASM := $(TOOLCHAIN_DIR)/bpf_asm-$(BPF_ASM_VERSION)/tools/bpf/bpf_asm
 FLEX_VERSION := 2.6.4
 FLEX := $(TOOLCHAIN_DIR)/flex-$(FLEX_VERSION)/src/flex
 GO_VERSION := 1.23.3
@@ -112,11 +116,15 @@ check: all
 #
 
 .PHONY: toolchain
-toolchain: $(BISON) $(FLEX) $(GO) $(TINYGO)
+toolchain: $(BISON) $(BPF_ASM) $(FLEX) $(GO) $(TINYGO)
 
 $(BISON): $(BUILDTOOL)
 	@echo Building Bison $(BISON_VERSION)
 	$(BUILDTOOL) bootstrap-bison
+
+$(BPF_ASM): $(BUILDTOOL)
+	@echo Building bpf_asm from Linux $(BPF_ASM_VERSION)
+	$(BUILDTOOL) bootstrap-bpf_asm
 
 $(BUILDTOOL): $(GO)
 	$(GO_GET) ./internal/build-tool

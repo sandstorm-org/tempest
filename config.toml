@@ -28,6 +28,13 @@ ToolChainDirTemplate = "toolchain"
 # Use Version to override the PreferredVersion in downloads.toml.
 #Version = "2.6.4"
 
+[build-tool.linux]
+# Use DownloadUrl to override the DownloadUrlTemplate in downloads.toml.
+#DownloadUrl = "https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.13.5.tar.xz"
+
+# Use Version to override the PreferredVersion in downloads.toml.
+#Version = "6.13.5"
+
 [build-tool.tinygo]
 # Use DownloadUrl to override the DownloadUrlTemplate in downloads.toml.
 #DownloadUrl = "https://github.com/tinygo-org/tinygo/releases/download/v0.35.0/tinygo0.35.0.linux-amd64.tar.gz"

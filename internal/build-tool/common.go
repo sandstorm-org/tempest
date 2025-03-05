@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"log"
 	"net/http"
 	"os"
 	"slices"
@@ -94,7 +95,7 @@ func extractTar(tarReader *tar.Reader, fileName string, filter fileFilter, trans
 				aDirTime := dirTime{newDir, next.AccessTime, next.ModTime}
 				dirTimes = append(dirTimes, &aDirTime)
 			} else {
-				return fmt.Errorf("Directory in archive has unexpected path: %s", next.Name)
+				log.Printf("Ignoring rejected directory: %s", next.Name)
 			}
 		} else if next.Typeflag == tar.TypeReg {
 			if filter(next.Name) {
@@ -117,8 +118,12 @@ func extractTar(tarReader *tar.Reader, fileName string, filter fileFilter, trans
 					return err
 				}
 			} else {
-				return fmt.Errorf("File in archive has unexpected path: %s", next.Name)
+				log.Printf("Ignoring rejected file: %s", next.Name)
 			}
+		} else if next.Typeflag == tar.TypeSymlink {
+			// Ignore symlinks (which occur in the Linux kernel source tarball)
+		} else if next.Typeflag == tar.TypeXGlobalHeader {
+			// Ignore the PAX format global header
 		} else {
 			return fmt.Errorf("Unexpected type in tar header: %s (%s)", next.Typeflag, fileName)
 		}

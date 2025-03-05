@@ -146,12 +146,13 @@ func getBisonConfig(buildToolConfig *RuntimeConfigBuildTool) (*bisonConfig, erro
 	if downloadFileInfo == (runtimeConfigFile{}) {
 		return nil, fmt.Errorf("File size and SHA-256 not found in downloads.toml for %s", downloadFile)
 	}
+	// Expected file size and SHA-256
 	expectedFileSize := downloadFileInfo.size
 	expectedSha256 := downloadFileInfo.sha256
+	// Install directory
 	versionedDir := "bison-" + buildToolConfig.bison.version
 	installDir := filepath.Join(buildToolConfig.toolChainDir, versionedDir)
 
-	// Expected file size and SHA-256
 	bisonConfig := new(bisonConfig)
 	bisonConfig.downloadFile = downloadFile
 	bisonConfig.downloadUrl = downloadUrl

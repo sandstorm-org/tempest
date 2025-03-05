@@ -141,12 +141,13 @@ func getTinyGoConfig(buildToolConfig *RuntimeConfigBuildTool) (*tinyGoConfig, er
 	if downloadFileInfo == (runtimeConfigFile{}) {
 		return nil, fmt.Errorf("File size and SHA-256 not found in downloads.toml for %s", downloadFile)
 	}
+	// Expected file size and SHA-256
 	expectedFileSize := downloadFileInfo.size
 	expectedSha256 := downloadFileInfo.sha256
+	// Install directory
 	tinyGoVersionedDir := "tinygo-" + buildToolConfig.tinyGo.version
 	installDir := filepath.Join(buildToolConfig.toolChainDir, tinyGoVersionedDir)
 
-	// Expected file size and SHA-256
 	tinyGoConfig := new(tinyGoConfig)
 	tinyGoConfig.downloadFile = downloadFile
 	tinyGoConfig.downloadUrl = downloadUrl

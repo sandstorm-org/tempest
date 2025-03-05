@@ -148,12 +148,13 @@ func getFlexConfig(buildToolConfig *RuntimeConfigBuildTool) (*flexConfig, error)
 	if downloadFileInfo == (runtimeConfigFile{}) {
 		return nil, fmt.Errorf("File size and SHA-256 not found in downloads.toml for %s", downloadFile)
 	}
+	// Expected file size and SHA-256
 	expectedFileSize := downloadFileInfo.size
 	expectedSha256 := downloadFileInfo.sha256
+	// Install directory
 	versionedDir := "flex-" + buildToolConfig.flex.version
 	installDir := filepath.Join(buildToolConfig.toolChainDir, versionedDir)
 
-	// Expected file size and SHA-256
 	flexConfig := new(flexConfig)
 	flexConfig.downloadFile = downloadFile
 	flexConfig.downloadUrl = downloadUrl

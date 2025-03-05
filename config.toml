@@ -21,6 +21,13 @@ ToolChainDirTemplate = "toolchain"
 # Use Version to override the PreferredVersion in downloads.toml.
 #Version = "3.18.2"
 
+[build-tool.flex]
+# Use DownloadUrl to override the DownloadUrlTemplate in downloads.toml.
+#DownloadUrl = "https://github.com/westes/flex/releases/download/v2.6.4/flex-2.6.4.tar.gz"
+
+# Use Version to override the PreferredVersion in downloads.toml.
+#Version = "2.6.4"
+
 [build-tool.tinygo]
 # Use DownloadUrl to override the DownloadUrlTemplate in downloads.toml.
 #DownloadUrl = "https://github.com/tinygo-org/tinygo/releases/download/v0.35.0/tinygo0.35.0.linux-amd64.tar.gz"

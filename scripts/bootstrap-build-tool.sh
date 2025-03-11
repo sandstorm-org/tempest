@@ -56,7 +56,7 @@ check_for_existing_installation() {
 	fi
 }
 
-# Ensure that the system has the command necessary to run this script.
+# Ensure that the system has the commands necessary to run this script.
 check_for_prerequisites() {
 	if ! command -v printf >/dev/null 2>/dev/null; then
 		# There is no point to use fail, which requires printf

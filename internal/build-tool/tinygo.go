@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -13,6 +14,7 @@ import (
 type tinyGoConfig struct {
 	downloadFile     string
 	downloadUrl      string
+	executable       string
 	expectedFileSize int64
 	expectedSha256   string
 	installDir       string
@@ -63,13 +65,13 @@ func BootstrapTinyGo(buildToolConfig *RuntimeConfigBuildTool) ([]string, error) 
 		return messages, err
 	}
 	messages = append(messages, fmt.Sprintf("%s has the correct SHA-256", downloadPath))
-	exists, err = fileExistsAtPath(tinyGoConfig.installDir)
+	exists, err = fileExistsAtPath(tinyGoConfig.executable)
 	if err != nil {
 		log.Printf("fileExistsAtPath err\n")
 		return messages, err
 	}
 	if exists {
-		messages = append(messages, fmt.Sprintf("Refusing to install TinyGo because %s exists", tinyGoConfig.installDir))
+		messages = append(messages, fmt.Sprintf("Refusing to install TinyGo because %s exists", tinyGoConfig.executable))
 	} else {
 		transformTinyGoTarGz := transformTinyGoTarGzFactory(tinyGoConfig.installDir)
 		err = extractTarGz(downloadPath, filterTinyGoTarGz, transformTinyGoTarGz)
@@ -80,15 +82,18 @@ func BootstrapTinyGo(buildToolConfig *RuntimeConfigBuildTool) ([]string, error) 
 	// is current, then make will not invoke the target.  If its modified
 	// time is not updated, then make will extract TinyGo every time the
 	// TinyGo target is invoked.
-	tinyGoBinPath := filepath.Join(tinyGoConfig.installDir, "bin/tinygo")
-	exists, err = fileExistsAtPath(tinyGoBinPath)
+	exists, err = fileExistsAtPath(tinyGoConfig.executable)
 	if err != nil {
 		log.Printf("fileExistsAtPath err\n")
 		return messages, err
 	}
 	if exists {
-		err = setFileModifiedTimeToNow(tinyGoBinPath)
+		err = setFileModifiedTimeToNow(tinyGoConfig.executable)
 	}
+	if err != nil {
+		return messages, err
+	}
+	err = updateTinyGoToolchainToml(buildToolConfig.toolChainDir, tinyGoConfig.executable)
 	return messages, err
 }
 
@@ -147,10 +152,13 @@ func getTinyGoConfig(buildToolConfig *RuntimeConfigBuildTool) (*tinyGoConfig, er
 	// Install directory
 	tinyGoVersionedDir := "tinygo-" + buildToolConfig.tinyGo.version
 	installDir := filepath.Join(buildToolConfig.toolChainDir, tinyGoVersionedDir)
+	// TinyGo executable
+	executable := filepath.Join(installDir, "bin", "tinygo")
 
 	tinyGoConfig := new(tinyGoConfig)
 	tinyGoConfig.downloadFile = downloadFile
 	tinyGoConfig.downloadUrl = downloadUrl
+	tinyGoConfig.executable = executable
 	tinyGoConfig.expectedFileSize = expectedFileSize
 	tinyGoConfig.expectedSha256 = expectedSha256
 	tinyGoConfig.installDir = installDir
@@ -166,4 +174,19 @@ func transformTinyGoTarGzFactory(destinationDir string) fileTransformer {
 	return func(filePath string) string {
 		return transformTinyGoTarGz(destinationDir, filePath)
 	}
+}
+
+func updateTinyGoToolchainToml(toolchainDir string, executable string) error {
+	toolchainTomlTopLevel, err := ReadToolchainToml(toolchainDir)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			return err
+		}
+		toolchainTomlTopLevel = new(ToolchainTomlTopLevel)
+	}
+	if toolchainTomlTopLevel.TinyGo == nil {
+		toolchainTomlTopLevel.TinyGo = new(ToolchainTomlTool)
+	}
+	toolchainTomlTopLevel.TinyGo.Executable = executable
+	return WriteToolchainToml(toolchainDir, toolchainTomlTopLevel)
 }

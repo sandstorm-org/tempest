@@ -64,7 +64,7 @@ func main() {
 func loadConfiguration(configFileFlag *string, downloadsFileFlag *string) (*buildtool.RuntimeConfigBuildTool, error) {
 	// Config file
 	configFilePath := selectConfigFile(configFileFlag)
-	configFile, err := buildtool.LoadConfigFile(configFilePath)
+	configFile, err := buildtool.ReadConfigFile(configFilePath)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +78,7 @@ func loadConfiguration(configFileFlag *string, downloadsFileFlag *string) (*buil
 		}
 	}
 	var downloadsFile *buildtool.DownloadsTomlTopLevel
-	downloadsFile, err = buildtool.LoadDownloadsFile(downloadsFileFlag)
+	downloadsFile, err = buildtool.ReadDownloadsFile(downloadsFileFlag)
 	if err != nil {
 		return nil, err
 	}

@@ -19,11 +19,17 @@ package buildtool
 import (
 	"fmt"
 	"log"
+	"os"
+	"os/exec"
 	"path/filepath"
 )
 
 type bpfAsmConfig struct {
-	installDir string
+	bisonExecutable string
+	executable      string
+	flexExecutable  string
+	makePath        string
+	installDir      string
 }
 
 func BootstrapBpfAsm(buildToolConfig *RuntimeConfigBuildTool) ([]string, error) {
@@ -41,13 +47,13 @@ func BootstrapBpfAsm(buildToolConfig *RuntimeConfigBuildTool) ([]string, error) 
 		return messages, err
 	}
 	var exists bool
-	exists, err = fileExistsAtPath(bpfAsmConfig.installDir)
+	exists, err = fileExistsAtPath(bpfAsmConfig.executable)
 	if err != nil {
 		log.Printf("fileExistsAtPath err\n")
 		return messages, err
 	}
 	if exists {
-		messages = append(messages, fmt.Sprintf("Refusing to unpack bpf_asm because %s exists", bpfAsmConfig.installDir))
+		messages = append(messages, fmt.Sprintf("Refusing to unpack bpf_asm because %s exists", bpfAsmConfig.executable))
 	} else {
 		desiredPrefixes := make([]string, 0, 3)
 		desiredPrefixes = append(desiredPrefixes, "linux-"+buildToolConfig.linux.version+"/tools/bpf/")
@@ -57,15 +63,66 @@ func BootstrapBpfAsm(buildToolConfig *RuntimeConfigBuildTool) ([]string, error) 
 		filterLinuxTarXz := filterLinuxTarXzFactory(desiredPrefixes)
 		transformLinuxTarXz := transformLinuxTarXzFactory(bpfAsmConfig.installDir, len(commonPrefix))
 		err = extractTarXz(downloadPath, filterLinuxTarXz, transformLinuxTarXz)
+		if err != nil {
+			return messages, err
+		}
+		err = makeBpfAsm(bpfAsmConfig)
 	}
+	err = updateBpfAsmToolchainToml(buildToolConfig.toolChainDir, bpfAsmConfig.executable)
 	return messages, err
 }
 
 func getBpfAsmConfig(buildToolConfig *RuntimeConfigBuildTool) (*bpfAsmConfig, error) {
+	bisonExecutable := buildToolConfig.bison.executable
+	flexExecutable := buildToolConfig.flex.executable
+	// Install directory
 	bpfAsmVersionedDir := "bpf_asm-" + buildToolConfig.linux.version
 	installDir := filepath.Join(buildToolConfig.toolChainDir, bpfAsmVersionedDir)
+	// BpfAsm executable
+	executable := filepath.Join(installDir, "tools", "bpf", "bpf_asm")
+	// BpfAsm make path
+	makePath := filepath.Join(installDir, "tools", "bpf")
 
 	bpfAsmConfig := new(bpfAsmConfig)
+	bpfAsmConfig.bisonExecutable = bisonExecutable
+	bpfAsmConfig.executable = executable
+	bpfAsmConfig.flexExecutable = flexExecutable
 	bpfAsmConfig.installDir = installDir
+	bpfAsmConfig.makePath = makePath
 	return bpfAsmConfig, nil
+}
+
+func makeBpfAsm(config *bpfAsmConfig) error {
+	cmd := exec.Command("make")
+	cmd.Dir = config.makePath
+	lex := config.flexExecutable
+	if lex != "flex" {
+		lexVar := "LEX=" + lex
+		cmd.Args = append(cmd.Args, lexVar)
+	}
+	yacc := config.bisonExecutable
+	if yacc != "bison" {
+		yaccVar := "YACC=" + yacc
+		cmd.Args = append(cmd.Args, yaccVar)
+	}
+	cmd.Args = append(cmd.Args, "bpf_asm")
+	cmd.Env = append(cmd.Env, os.Environ()...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
+}
+
+func updateBpfAsmToolchainToml(toolchainDir string, executable string) error {
+	toolchainTomlTopLevel, err := ReadToolchainToml(toolchainDir)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			return err
+		}
+		toolchainTomlTopLevel = new(ToolchainTomlTopLevel)
+	}
+	if toolchainTomlTopLevel.BpfAsm == nil {
+		toolchainTomlTopLevel.BpfAsm = new(ToolchainTomlTool)
+	}
+	toolchainTomlTopLevel.BpfAsm.Executable = executable
+	return WriteToolchainToml(toolchainDir, toolchainTomlTopLevel)
 }

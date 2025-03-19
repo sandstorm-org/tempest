@@ -44,7 +44,7 @@ type DownloadsTomlFile struct {
 	Size   int64
 }
 
-func LoadDownloadsFile(downloadsFilePath *string) (*DownloadsTomlTopLevel, error) {
+func ReadDownloadsFile(downloadsFilePath *string) (*DownloadsTomlTopLevel, error) {
 	downloads := new(DownloadsTomlTopLevel)
 	_, err := toml.DecodeFile(*downloadsFilePath, downloads)
 	if err != nil {

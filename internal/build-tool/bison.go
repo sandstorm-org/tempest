@@ -14,6 +14,7 @@ import (
 type bisonConfig struct {
 	downloadFile     string
 	downloadUrl      string
+	executable       string
 	expectedFileSize int64
 	expectedSha256   string
 	installDir       string
@@ -63,23 +64,30 @@ func BootstrapBison(buildToolConfig *RuntimeConfigBuildTool) ([]string, error) {
 		return messages, err
 	}
 	messages = append(messages, fmt.Sprintf("%s has the correct SHA-256", downloadPath))
-	exists, err = fileExistsAtPath(bisonConfig.installDir)
+	exists, err = fileExistsAtPath(bisonConfig.executable)
 	if err != nil {
 		log.Printf("fileExistsAtPath err\n")
 		return messages, err
 	}
 	if exists {
-		messages = append(messages, fmt.Sprintf("Refusing to install Bison because %s exists", bisonConfig.installDir))
+		messages = append(messages, fmt.Sprintf("Refusing to install Bison because %s exists", bisonConfig.executable))
 	} else {
 		filterBisonTarXz := filterBisonTarXzFactory(bisonConfig.versionedDir)
 		transformBisonTarXz := transformBisonTarXzFactory(buildToolConfig.toolChainDir)
 		err = extractTarXz(downloadPath, filterBisonTarXz, transformBisonTarXz)
+		if err != nil {
+			return messages, err
+		}
+		err = configureBison(bisonConfig.installDir)
+		if err != nil {
+			return messages, err
+		}
+		err = makeBison(bisonConfig.installDir)
+		if err != nil {
+			return messages, err
+		}
 	}
-	err = configureBison(bisonConfig.installDir)
-	if err != nil {
-		return messages, err
-	}
-	err = makeBison(bisonConfig.installDir)
+	err = updateBisonToolchainToml(buildToolConfig.toolChainDir, bisonConfig.executable)
 	return messages, err
 }
 
@@ -152,10 +160,13 @@ func getBisonConfig(buildToolConfig *RuntimeConfigBuildTool) (*bisonConfig, erro
 	// Install directory
 	versionedDir := "bison-" + buildToolConfig.bison.version
 	installDir := filepath.Join(buildToolConfig.toolChainDir, versionedDir)
+	// Bison executable
+	executable := filepath.Join(installDir, "tests", "bison")
 
 	bisonConfig := new(bisonConfig)
 	bisonConfig.downloadFile = downloadFile
 	bisonConfig.downloadUrl = downloadUrl
+	bisonConfig.executable = executable
 	bisonConfig.expectedFileSize = expectedFileSize
 	bisonConfig.expectedSha256 = expectedSha256
 	bisonConfig.installDir = installDir
@@ -180,4 +191,19 @@ func transformBisonTarXzFactory(toolchainDir string) fileTransformer {
 	return func(filePath string) string {
 		return transformBisonTarXz(toolchainDir, filePath)
 	}
+}
+
+func updateBisonToolchainToml(toolchainDir string, executable string) error {
+	toolchainTomlTopLevel, err := ReadToolchainToml(toolchainDir)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			return err
+		}
+		toolchainTomlTopLevel = new(ToolchainTomlTopLevel)
+	}
+	if toolchainTomlTopLevel.Bison == nil {
+		toolchainTomlTopLevel.Bison = new(ToolchainTomlTool)
+	}
+	toolchainTomlTopLevel.Bison.Executable = executable
+	return WriteToolchainToml(toolchainDir, toolchainTomlTopLevel)
 }

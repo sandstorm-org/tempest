@@ -13,6 +13,7 @@ BUILDTOOL_PACKAGE := \
 		     internal/build-tool/flex.go \
 		     internal/build-tool/linux.go \
 		     internal/build-tool/tinygo.go \
+		     internal/build-tool/toolchain.go \
 
 TOOLCHAIN_DIR := ./toolchain
 BISON_VERSION := 3.8.2

@@ -1,9 +1,27 @@
+// Tempest
+// Copyright (c) 2025 Sandstorm Development Team and contributors
+// All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//   http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package buildtool
 
 import (
 	"bytes"
 	"fmt"
+	"os"
 	"os/user"
+	"path/filepath"
 	"text/template"
 
 	"github.com/BurntSushi/toml"
@@ -31,6 +49,7 @@ type ConfigTomlBuildTool struct {
 	DownloadUserAgent    string
 	DownloadsFile        string
 	Bison                ConfigTomlBison  `toml:"bison"`
+	BpfAsm               ConfigTomlBpfAsm `toml:"bpf_asm"`
 	Flex                 ConfigTomlFlex   `toml:"flex"`
 	Linux                ConfigTomlLinux  `toml:"linux"`
 	TinyGo               ConfigTomlTinyGo `toml:"tinygo"`
@@ -38,11 +57,17 @@ type ConfigTomlBuildTool struct {
 
 type ConfigTomlBison struct {
 	DownloadUrl string
+	Executable  string
 	Version     string
+}
+
+type ConfigTomlBpfAsm struct {
+	Executable string
 }
 
 type ConfigTomlFlex struct {
 	DownloadUrl string
+	Executable  string
 	Version     string
 }
 
@@ -70,6 +95,7 @@ type RuntimeConfigBuildTool struct {
 	downloadDir       string
 	downloadUserAgent string
 	bison             *runtimeConfigBison
+	bpfAsm            *runtimeConfigBpfAsm
 	flex              *runtimeConfigFlex
 	linux             *runtimeConfigLinux
 	tinyGo            *runtimeConfigTinyGo
@@ -77,19 +103,25 @@ type RuntimeConfigBuildTool struct {
 
 type runtimeConfigBison struct {
 	downloadUrlTemplate string
+	executable          string
+	filenameTemplate    string
+	files               map[string]runtimeConfigFile
+	version             string
+}
+
+type runtimeConfigBpfAsm struct {
+	executable string
+}
+
+type runtimeConfigFlex struct {
+	downloadUrlTemplate string
+	executable          string
 	filenameTemplate    string
 	files               map[string]runtimeConfigFile
 	version             string
 }
 
 type runtimeConfigLinux struct {
-	downloadUrlTemplate string
-	filenameTemplate    string
-	files               map[string]runtimeConfigFile
-	version             string
-}
-
-type runtimeConfigFlex struct {
 	downloadUrlTemplate string
 	filenameTemplate    string
 	files               map[string]runtimeConfigFile
@@ -120,13 +152,21 @@ func BuildConfiguration(configFile *ConfigTomlTopLevel, downloadsFile *Downloads
 		return nil, err
 	}
 	config.downloadUserAgent = configFile.BuildTool.DownloadUserAgent
+	var toolchainToml *ToolchainTomlTopLevel
+	toolchainToml, err = ReadToolchainToml(config.toolChainDir)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			return nil, err
+		}
+		toolchainToml = new(ToolchainTomlTopLevel)
+	}
 	config.bison = new(runtimeConfigBison)
-	err = populateBisonRuntimeConfig(config.bison, &configFile.BuildTool.Bison, &downloadsFile.Bison)
+	err = populateBisonRuntimeConfig(config.bison, &configFile.BuildTool.Bison, &downloadsFile.Bison, toolchainToml)
 	if err != nil {
 		return nil, err
 	}
 	config.flex = new(runtimeConfigFlex)
-	err = populateFlexRuntimeConfig(config.flex, &configFile.BuildTool.Flex, &downloadsFile.Flex)
+	err = populateFlexRuntimeConfig(config.flex, &configFile.BuildTool.Flex, &downloadsFile.Flex, toolchainToml)
 	if err != nil {
 		return nil, err
 	}
@@ -165,17 +205,23 @@ func buildDirWithTemplate(templateName string, dirTemplate string) (string, erro
 	return result, nil
 }
 
-func LoadConfigFile(configFilePath *string) (*ConfigTomlTopLevel, error) {
-	config := new(ConfigTomlTopLevel)
-	_, err := toml.DecodeFile(*configFilePath, config)
-	return config, err
-}
-
-func populateBisonRuntimeConfig(runtimeConfig *runtimeConfigBison, configFile *ConfigTomlBison, downloadsFile *DownloadsTomlBison) error {
+func populateBisonRuntimeConfig(runtimeConfig *runtimeConfigBison, configFile *ConfigTomlBison, downloadsFile *DownloadsTomlBison, toolchainToml *ToolchainTomlTopLevel) error {
 	if configFile.DownloadUrl != "" {
 		runtimeConfig.downloadUrlTemplate = configFile.DownloadUrl
 	} else {
 		runtimeConfig.downloadUrlTemplate = downloadsFile.DownloadUrlTemplate
+	}
+	if configFile.Executable != "" {
+		runtimeConfig.executable = configFile.Executable
+	} else if toolchainToml.Bison != nil && toolchainToml.Bison.Executable != "" {
+		absExecutable, err := filepath.Abs(toolchainToml.Bison.Executable)
+		if err != nil {
+			return err
+		}
+		runtimeConfig.executable = absExecutable
+	} else {
+		// Expect the user to have bison in the PATH.
+		runtimeConfig.executable = "bison"
 	}
 	runtimeConfig.filenameTemplate = downloadsFile.FilenameTemplate
 	if configFile.Version != "" {
@@ -196,11 +242,23 @@ func populateBisonRuntimeConfig(runtimeConfig *runtimeConfigBison, configFile *C
 	return nil
 }
 
-func populateFlexRuntimeConfig(runtimeConfig *runtimeConfigFlex, configFile *ConfigTomlFlex, downloadsFile *DownloadsTomlFlex) error {
+func populateFlexRuntimeConfig(runtimeConfig *runtimeConfigFlex, configFile *ConfigTomlFlex, downloadsFile *DownloadsTomlFlex, toolchainToml *ToolchainTomlTopLevel) error {
 	if configFile.DownloadUrl != "" {
 		runtimeConfig.downloadUrlTemplate = configFile.DownloadUrl
 	} else {
 		runtimeConfig.downloadUrlTemplate = downloadsFile.DownloadUrlTemplate
+	}
+	if configFile.Executable != "" {
+		runtimeConfig.executable = configFile.Executable
+	} else if toolchainToml.Flex != nil && toolchainToml.Flex.Executable != "" {
+		absExecutable, err := filepath.Abs(toolchainToml.Flex.Executable)
+		if err != nil {
+			return err
+		}
+		runtimeConfig.executable = absExecutable
+	} else {
+		// Expect the user to have flex in the PATH.
+		runtimeConfig.executable = "flex"
 	}
 	runtimeConfig.filenameTemplate = downloadsFile.FilenameTemplate
 	if configFile.Version != "" {
@@ -269,4 +327,10 @@ func populateTinyGoRuntimeConfig(runtimeConfig *runtimeConfigTinyGo, configFile 
 		}
 	}
 	return nil
+}
+
+func ReadConfigFile(configFilePath *string) (*ConfigTomlTopLevel, error) {
+	config := new(ConfigTomlTopLevel)
+	_, err := toml.DecodeFile(*configFilePath, config)
+	return config, err
 }

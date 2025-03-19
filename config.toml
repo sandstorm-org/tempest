@@ -1,4 +1,4 @@
-# Paths are relative to the folder that holds this configuration file.
+# Paths are relative to the directory that holds this configuration file.
 
 [tempest]
 User = "sandstorm"
@@ -18,12 +18,25 @@ ToolChainDirTemplate = "toolchain"
 # Use DownloadUrl to override the DownloadUrlTemplate in downloads.toml.
 #DownloadUrl = "https://ftpmirrors.gnu.org/bison/bison-3.18.2.tar.xz"
 
+# Use Executable to specify the path to an existing Bison executable.
+#Executable = "/usr/local/bin/bison"
+
 # Use Version to override the PreferredVersion in downloads.toml.
 #Version = "3.18.2"
+
+[build-tool.bpf_asm]
+# bpf_asm is a tool from the Linux kernel.  To configure downloads of the Linux
+# kernel, see the [build-tool.linux] section.
+
+# Use Executable to specify the path to an existing bpf_asm executable.
+#Executable = "/usr/local/bin/bpf_asm"
 
 [build-tool.flex]
 # Use DownloadUrl to override the DownloadUrlTemplate in downloads.toml.
 #DownloadUrl = "https://github.com/westes/flex/releases/download/v2.6.4/flex-2.6.4.tar.gz"
+
+# Use Executable to specify the path to an existing Flex executable.
+#Executable = "/usr/local/bin/flex"
 
 # Use Version to override the PreferredVersion in downloads.toml.
 #Version = "2.6.4"

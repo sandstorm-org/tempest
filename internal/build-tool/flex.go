@@ -14,6 +14,7 @@ import (
 type flexConfig struct {
 	downloadFile     string
 	downloadUrl      string
+	executable       string
 	expectedFileSize int64
 	expectedSha256   string
 	installDir       string
@@ -64,23 +65,30 @@ func BootstrapFlex(buildToolConfig *RuntimeConfigBuildTool) ([]string, error) {
 		return messages, err
 	}
 	messages = append(messages, fmt.Sprintf("%s has the correct SHA-256", downloadPath))
-	exists, err = fileExistsAtPath(flexConfig.installDir)
+	exists, err = fileExistsAtPath(flexConfig.executable)
 	if err != nil {
 		log.Printf("fileExistsAtPath err\n")
 		return messages, err
 	}
 	if exists {
-		messages = append(messages, fmt.Sprintf("Refusing to install Flex because %s exists", flexConfig.installDir))
+		messages = append(messages, fmt.Sprintf("Refusing to install Flex because %s exists", flexConfig.executable))
 	} else {
 		filterFlexTarGz := filterFlexTarGzFactory(flexConfig.versionedDir)
 		transformFlexTarGz := transformFlexTarGzFactory(buildToolConfig.toolChainDir)
 		err = extractTarGz(downloadPath, filterFlexTarGz, transformFlexTarGz)
+		if err != nil {
+			return messages, err
+		}
+		err = configureFlex(flexConfig.installDir)
+		if err != nil {
+			return messages, err
+		}
+		err = makeFlex(flexConfig.installDir)
+		if err != nil {
+			return messages, err
+		}
 	}
-	err = configureFlex(flexConfig.installDir)
-	if err != nil {
-		return messages, err
-	}
-	err = makeFlex(flexConfig.installDir)
+	err = updateFlexToolchainToml(buildToolConfig.toolChainDir, flexConfig.executable)
 	return messages, err
 }
 
@@ -154,10 +162,13 @@ func getFlexConfig(buildToolConfig *RuntimeConfigBuildTool) (*flexConfig, error)
 	// Install directory
 	versionedDir := "flex-" + buildToolConfig.flex.version
 	installDir := filepath.Join(buildToolConfig.toolChainDir, versionedDir)
+	// Flex executable
+	executable := filepath.Join(installDir, "src", "flex")
 
 	flexConfig := new(flexConfig)
 	flexConfig.downloadFile = downloadFile
 	flexConfig.downloadUrl = downloadUrl
+	flexConfig.executable = executable
 	flexConfig.expectedFileSize = expectedFileSize
 	flexConfig.expectedSha256 = expectedSha256
 	flexConfig.installDir = installDir
@@ -182,4 +193,19 @@ func transformFlexTarGzFactory(toolchainDir string) fileTransformer {
 	return func(filePath string) string {
 		return transformFlexTarGz(toolchainDir, filePath)
 	}
+}
+
+func updateFlexToolchainToml(toolchainDir string, executable string) error {
+	toolchainTomlTopLevel, err := ReadToolchainToml(toolchainDir)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			return err
+		}
+		toolchainTomlTopLevel = new(ToolchainTomlTopLevel)
+	}
+	if toolchainTomlTopLevel.Flex == nil {
+		toolchainTomlTopLevel.Flex = new(ToolchainTomlTool)
+	}
+	toolchainTomlTopLevel.Flex.Executable = executable
+	return WriteToolchainToml(toolchainDir, toolchainTomlTopLevel)
 }

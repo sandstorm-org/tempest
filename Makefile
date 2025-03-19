@@ -122,7 +122,7 @@ $(BISON): $(BUILDTOOL)
 	@echo Building Bison $(BISON_VERSION)
 	$(BUILDTOOL) bootstrap-bison
 
-$(BPF_ASM): $(BUILDTOOL)
+$(BPF_ASM): $(BISON) $(BUILDTOOL) $(FLEX)
 	@echo Building bpf_asm from Linux $(BPF_ASM_VERSION)
 	$(BUILDTOOL) bootstrap-bpf_asm
 

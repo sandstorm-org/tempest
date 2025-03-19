@@ -19,7 +19,6 @@ package buildtool
 import (
 	"bytes"
 	"fmt"
-	"log"
 	"path/filepath"
 	"strings"
 	"text/template"
@@ -83,7 +82,6 @@ func filterLinuxTarXz(prefixes []string, filePath string) bool {
 	acceptable := false
 	for _, prefix := range prefixes {
 		maxPathLength := min(len(prefix), len(filePath))
-		log.Printf("%s = %s\n", filePath, prefix[:maxPathLength])
 		acceptable = strings.HasPrefix(filePath, prefix[:maxPathLength])
 		if acceptable {
 			break
@@ -91,7 +89,7 @@ func filterLinuxTarXz(prefixes []string, filePath string) bool {
 	}
 	if !acceptable {
 		// TODO: Figure out how to get this in the messages slice.
-		log.Printf("Rejecting file with invalid prefix: %s\n", filePath)
+		//		log.Printf("Rejecting file with invalid prefix: %s\n", filePath)
 	}
 	return acceptable
 }

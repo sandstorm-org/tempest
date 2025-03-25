@@ -7,6 +7,7 @@ BUILDTOOL_MAIN := cmd/build-tool/main.go
 BUILDTOOL_PACKAGE := \
 		     internal/build-tool/bison.go \
 		     internal/build-tool/bpf_asm.go \
+		     internal/build-tool/capnproto.go \
 		     internal/build-tool/common.go \
 		     internal/build-tool/config.go \
 		     internal/build-tool/downloads.go \
@@ -20,6 +21,8 @@ BISON_VERSION := 3.8.2
 BISON := $(TOOLCHAIN_DIR)/bison-$(BISON_VERSION)/tests/bison
 BPF_ASM_VERSION := 6.13.5
 BPF_ASM := $(TOOLCHAIN_DIR)/bpf_asm-$(BPF_ASM_VERSION)/tools/bpf/bpf_asm
+CAPNP_VERSION := 1.1.0
+CAPNP := $(TOOLCHAIN_DIR)/capnproto-$(CAPNP_VERSION)/capnp
 FLEX_VERSION := 2.6.4
 FLEX := $(TOOLCHAIN_DIR)/flex-$(FLEX_VERSION)/src/flex
 GO_VERSION := 1.24.1
@@ -117,7 +120,7 @@ check: all
 #
 
 .PHONY: toolchain
-toolchain: $(BISON) $(BPF_ASM) $(FLEX) $(GO) $(TINYGO)
+toolchain: $(BISON) $(BPF_ASM) $(CAPNP) $(FLEX) $(GO) $(TINYGO)
 
 $(BISON): $(BUILDTOOL)
 	@echo Building Bison $(BISON_VERSION)
@@ -130,6 +133,10 @@ $(BPF_ASM): $(BISON) $(BUILDTOOL) $(FLEX)
 $(BUILDTOOL): $(GO)
 	$(GO_GET) ./internal/build-tool
 	$(GO_BUILD) -o $(BUILDTOOL) $(BUILDTOOL_MAIN)
+
+$(CAPNP): $(BUILDTOOL)
+	@echo Building Cap\'n Proto $(CAPNP_VERSION)
+	$(BUILDTOOL) bootstrap-capnproto
 
 $(FLEX): $(BUILDTOOL)
 	@echo Building Flex $(FLEX_VERSION)

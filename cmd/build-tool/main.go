@@ -12,10 +12,11 @@ const DefaultConfigPath = "./config.toml"
 const DefaultDownloadsFilePath = "./internal/build-tool/downloads.toml"
 
 var CLI struct {
-	BootstrapBison  struct{} `cmd:"" help:"Bootstrap Bison"`
-	BootstrapBpfAsm struct{} `cmd:"" help:"Bootstrap bpf_asm" name:"bootstrap-bpf_asm"`
-	BootstrapFlex   struct{} `cmd:"" help:"Bootstrap Flex"`
-	BootstrapTinygo struct{} `cmd:"" help:"Bootstrap TinyGo"`
+	BootstrapBison     struct{} `cmd:"" help:"Bootstrap Bison"`
+	BootstrapBpfAsm    struct{} `cmd:"" help:"Bootstrap bpf_asm" name:"bootstrap-bpf_asm"`
+	BootstrapCapnProto struct{} `cmd:"" help:"Bootstrap Cap'n Proto" name:"bootstrap-capnproto"`
+	BootstrapFlex      struct{} `cmd:"" help:"Bootstrap Flex"`
+	BootstrapTinygo    struct{} `cmd:"" help:"Bootstrap TinyGo"`
 
 	Config        string `default:"./config.toml" help:"path to the config file"`
 	DownloadsFile string `default:"./internal/build-tool/downloads.toml" help:"path to the downloads information file"`
@@ -40,6 +41,13 @@ func main() {
 		break
 	case "bootstrap-bpf_asm":
 		messages, err := buildtool.BootstrapBpfAsm(config)
+		logMessages(CLI.Verbose, messages)
+		if err != nil {
+			log.Fatal(err)
+		}
+		break
+	case "bootstrap-capnproto":
+		messages, err := buildtool.BootstrapCapnProto(config)
 		logMessages(CLI.Verbose, messages)
 		if err != nil {
 			log.Fatal(err)

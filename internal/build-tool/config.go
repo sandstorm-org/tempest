@@ -48,11 +48,12 @@ type ConfigTomlBuildTool struct {
 	DownloadDirTemplate  string
 	DownloadUserAgent    string
 	DownloadsFile        string
-	Bison                ConfigTomlBison  `toml:"bison"`
-	BpfAsm               ConfigTomlBpfAsm `toml:"bpf_asm"`
-	Flex                 ConfigTomlFlex   `toml:"flex"`
-	Linux                ConfigTomlLinux  `toml:"linux"`
-	TinyGo               ConfigTomlTinyGo `toml:"tinygo"`
+	Bison                ConfigTomlBison     `toml:"bison"`
+	BpfAsm               ConfigTomlBpfAsm    `toml:"bpf_asm"`
+	CapnProto            ConfigTomlCapnProto `toml:"capnproto"`
+	Flex                 ConfigTomlFlex      `toml:"flex"`
+	Linux                ConfigTomlLinux     `toml:"linux"`
+	TinyGo               ConfigTomlTinyGo    `toml:"tinygo"`
 }
 
 type ConfigTomlBison struct {
@@ -63,6 +64,12 @@ type ConfigTomlBison struct {
 
 type ConfigTomlBpfAsm struct {
 	Executable string
+}
+
+type ConfigTomlCapnProto struct {
+	DownloadUrl string
+	Executable  string
+	Version     string
 }
 
 type ConfigTomlFlex struct {
@@ -97,6 +104,7 @@ type RuntimeConfigBuildTool struct {
 	downloadUserAgent string
 	bison             *runtimeConfigBison
 	bpfAsm            *runtimeConfigBpfAsm
+	capnProto         *runtimeConfigCapnProto
 	flex              *runtimeConfigFlex
 	linux             *runtimeConfigLinux
 	tinyGo            *runtimeConfigTinyGo
@@ -112,6 +120,14 @@ type runtimeConfigBison struct {
 
 type runtimeConfigBpfAsm struct {
 	executable string
+}
+
+type runtimeConfigCapnProto struct {
+	downloadUrlTemplate string
+	executable          string
+	filenameTemplate    string
+	files               map[string]runtimeConfigFile
+	version             string
 }
 
 type runtimeConfigFlex struct {
@@ -169,6 +185,11 @@ func BuildConfiguration(configFile *ConfigTomlTopLevel, downloadsFile *Downloads
 	}
 	config.bpfAsm = new(runtimeConfigBpfAsm)
 	err = populateBpfAsmRuntimeConfig(config.bpfAsm, &configFile.BuildTool.BpfAsm, toolchainToml)
+	if err != nil {
+		return nil, err
+	}
+	config.capnProto = new(runtimeConfigCapnProto)
+	err = populateCapnProtoRuntimeConfig(config.capnProto, &configFile.BuildTool.CapnProto, &downloadsFile.CapnProto, toolchainToml)
 	if err != nil {
 		return nil, err
 	}
@@ -261,6 +282,43 @@ func populateBpfAsmRuntimeConfig(runtimeConfig *runtimeConfigBpfAsm, configFile 
 	} else {
 		// Expect the user to have bpf_asm in the PATH.
 		runtimeConfig.executable = "bpf_asm"
+	}
+	return nil
+}
+
+func populateCapnProtoRuntimeConfig(runtimeConfig *runtimeConfigCapnProto, configFile *ConfigTomlCapnProto, downloadsFile *DownloadsTomlCapnProto, toolchainToml *ToolchainTomlTopLevel) error {
+	if configFile.DownloadUrl != "" {
+		runtimeConfig.downloadUrlTemplate = configFile.DownloadUrl
+	} else {
+		runtimeConfig.downloadUrlTemplate = downloadsFile.DownloadUrlTemplate
+	}
+	if configFile.Executable != "" {
+		runtimeConfig.executable = configFile.Executable
+	} else if toolchainToml.CapnProto != nil && toolchainToml.CapnProto.Executable != "" {
+		absExecutable, err := filepath.Abs(toolchainToml.CapnProto.Executable)
+		if err != nil {
+			return err
+		}
+		runtimeConfig.executable = absExecutable
+	} else {
+		// Expect the user to have capnp in the PATH.
+		runtimeConfig.executable = "capnp"
+	}
+	runtimeConfig.filenameTemplate = downloadsFile.FilenameTemplate
+	if configFile.Version != "" {
+		runtimeConfig.version = configFile.Version
+	} else {
+		runtimeConfig.version = downloadsFile.PreferredVersion
+	}
+	if runtimeConfig.version == "" {
+		return fmt.Errorf("Cap'n Proto has no configured version")
+	}
+	runtimeConfig.files = make(map[string]runtimeConfigFile)
+	for fileName, fileStruct := range downloadsFile.Files {
+		runtimeConfig.files[fileName] = runtimeConfigFile{
+			fileStruct.Sha256,
+			fileStruct.Size,
+		}
 	}
 	return nil
 }

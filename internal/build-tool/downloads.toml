@@ -7,6 +7,15 @@ PreferredVersion = "3.8.2"
 SHA-256 = "9bba0214ccf7f1079c5d59210045227bcf619519840ebfa80cd3849cff5a5bf2"
 Size = 2817324
 
+[capnproto]
+DownloadUrlTemplate = "https://capnproto.org/{{ .Filename }}"
+FilenameTemplate = "capnproto-c++-{{ .Version }}.tar.gz"
+PreferredVersion = "1.1.0"
+
+[capnproto.files."capnproto-c++-1.1.0.tar.gz"]
+SHA-256 = "07167580e563f5e821e3b2af1c238c16ec7181612650c5901330fa9a0da50939"
+Size = 1768797
+
 [flex]
 DownloadUrlTemplate = "https://github.com/westes/flex/releases/download/v{{ .Version }}/{{ .Filename }}"
 FilenameTemplate = "flex-{{ .Version }}.tar.gz"

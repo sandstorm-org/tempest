@@ -24,10 +24,11 @@ import (
 )
 
 type ToolchainTomlTopLevel struct {
-	Bison  *ToolchainTomlTool `toml:"bison"`
-	BpfAsm *ToolchainTomlTool `toml:"bpf-asm"`
-	Flex   *ToolchainTomlTool `toml:"flex"`
-	TinyGo *ToolchainTomlTool `toml:"tinygo"`
+	Bison     *ToolchainTomlTool `toml:"bison"`
+	BpfAsm    *ToolchainTomlTool `toml:"bpf-asm"`
+	CapnProto *ToolchainTomlTool `toml:"capnproto"`
+	Flex      *ToolchainTomlTool `toml:"flex"`
+	TinyGo    *ToolchainTomlTool `toml:"tinygo"`
 }
 
 type ToolchainTomlTool struct {

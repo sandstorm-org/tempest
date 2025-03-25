@@ -31,6 +31,16 @@ ToolChainDirTemplate = "toolchain"
 # Use Executable to specify the path to an existing bpf_asm executable.
 #Executable = "/usr/local/bin/bpf_asm"
 
+[build-tool.capnproto]
+# Use DownloadUrl to override the DownloadUrlTemplate in downloads.toml.
+#DownloadUrl = "https://capnproto.org/capnproto-c++-1.1.0.tar.gz"
+
+# Use Executable to specify the path to an existing capnp executable.
+#Executable = "/usr/local/bin/capnp"
+
+# Use Version to override the PreferredVersion in downloads.toml.
+#Version = "1.1.0"
+
 [build-tool.flex]
 # Use DownloadUrl to override the DownloadUrlTemplate in downloads.toml.
 #DownloadUrl = "https://github.com/westes/flex/releases/download/v2.6.4/flex-2.6.4.tar.gz"

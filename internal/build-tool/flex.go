@@ -123,6 +123,9 @@ func filterFlexTarGzFactory(versionedDir string) fileFilter {
  */
 func getFlexConfig(buildToolConfig *RuntimeConfigBuildTool) (*flexConfig, error) {
 	// Download File
+	if buildToolConfig.flex == nil {
+		return nil, fmt.Errorf("buildToolConfig.flex is nil")
+	}
 	filenameValues := flexFilenameTemplateValues{
 		buildToolConfig.flex.version,
 	}

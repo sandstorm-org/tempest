@@ -112,6 +112,9 @@ func filterTinyGoTarGz(filePath string) bool {
  */
 func getTinyGoConfig(buildToolConfig *RuntimeConfigBuildTool) (*tinyGoConfig, error) {
 	// Download File
+	if buildToolConfig.tinyGo == nil {
+		return nil, fmt.Errorf("buildToolConfig.tinyGo is nil")
+	}
 	filenameValues := tinyGoFilenameTemplateValues{
 		runtime.GOARCH,
 		buildToolConfig.tinyGo.version,

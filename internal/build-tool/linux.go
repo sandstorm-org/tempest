@@ -106,6 +106,9 @@ func filterLinuxTarXzFactory(desiredPrefixes []string) fileFilter {
  */
 func getLinuxConfig(buildToolConfig *RuntimeConfigBuildTool) (*linuxConfig, error) {
 	// Download File
+	if buildToolConfig.linux == nil {
+		return nil, fmt.Errorf("buildToolConfig.linux is nil")
+	}
 	filenameValues := linuxFilenameTemplateValues{
 		buildToolConfig.linux.version,
 	}

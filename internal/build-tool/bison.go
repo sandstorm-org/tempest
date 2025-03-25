@@ -122,6 +122,9 @@ func filterBisonTarXzFactory(versionedDir string) fileFilter {
  */
 func getBisonConfig(buildToolConfig *RuntimeConfigBuildTool) (*bisonConfig, error) {
 	// Download File
+	if buildToolConfig.bison == nil {
+		return nil, fmt.Errorf("buildToolConfig.bison is nil")
+	}
 	filenameValues := bisonFilenameTemplateValues{
 		buildToolConfig.bison.version,
 	}

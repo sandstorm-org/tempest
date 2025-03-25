@@ -73,6 +73,15 @@ func BootstrapBpfAsm(buildToolConfig *RuntimeConfigBuildTool) ([]string, error) 
 }
 
 func getBpfAsmConfig(buildToolConfig *RuntimeConfigBuildTool) (*bpfAsmConfig, error) {
+	if buildToolConfig.bison == nil {
+		return nil, fmt.Errorf("buildToolConfig.bison is nil")
+	} else if buildToolConfig.bpfAsm == nil {
+		return nil, fmt.Errorf("buildToolConfig.bpfAsm is nil")
+	} else if buildToolConfig.flex == nil {
+		return nil, fmt.Errorf("buildToolConfig.flex is nil")
+	} else if buildToolConfig.linux == nil {
+		return nil, fmt.Errorf("buildToolConfig.linux is nil")
+	}
 	bisonExecutable := buildToolConfig.bison.executable
 	flexExecutable := buildToolConfig.flex.executable
 	// Install directory

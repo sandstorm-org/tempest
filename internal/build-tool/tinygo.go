@@ -21,13 +21,13 @@ type tinyGoConfig struct {
 }
 
 // text/template uses these struct fields from a separate package, so they must be in PascalCase.
-type tinygoDownloadUrlTemplateValues struct {
+type tinyGoDownloadUrlTemplateValues struct {
 	Filename string
 	Version  string
 }
 
 // text/template uses these struct fields from a separate package, so they must be in PascalCase.
-type tinygoFilenameTemplateValues struct {
+type tinyGoFilenameTemplateValues struct {
 	Arch    string
 	Version string
 }
@@ -112,7 +112,7 @@ func filterTinyGoTarGz(filePath string) bool {
  */
 func getTinyGoConfig(buildToolConfig *RuntimeConfigBuildTool) (*tinyGoConfig, error) {
 	// Download File
-	filenameValues := tinygoFilenameTemplateValues{
+	filenameValues := tinyGoFilenameTemplateValues{
 		runtime.GOARCH,
 		buildToolConfig.tinyGo.version,
 	}
@@ -128,7 +128,7 @@ func getTinyGoConfig(buildToolConfig *RuntimeConfigBuildTool) (*tinyGoConfig, er
 	downloadFile := filenameBuffer.String()
 
 	// Download URL
-	downloadUrlValues := tinygoDownloadUrlTemplateValues{
+	downloadUrlValues := tinyGoDownloadUrlTemplateValues{
 		downloadFile,
 		buildToolConfig.tinyGo.version,
 	}

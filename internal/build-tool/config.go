@@ -78,6 +78,7 @@ type ConfigTomlLinux struct {
 
 type ConfigTomlTinyGo struct {
 	DownloadUrl string
+	Executable  string
 	Version     string
 }
 
@@ -130,6 +131,7 @@ type runtimeConfigLinux struct {
 
 type runtimeConfigTinyGo struct {
 	downloadUrlTemplate string
+	executable          string
 	filenameTemplate    string
 	files               map[string]runtimeConfigFile
 	version             string
@@ -165,6 +167,11 @@ func BuildConfiguration(configFile *ConfigTomlTopLevel, downloadsFile *Downloads
 	if err != nil {
 		return nil, err
 	}
+	config.bpfAsm = new(runtimeConfigBpfAsm)
+	err = populateBpfAsmRuntimeConfig(config.bpfAsm, &configFile.BuildTool.BpfAsm, toolchainToml)
+	if err != nil {
+		return nil, err
+	}
 	config.flex = new(runtimeConfigFlex)
 	err = populateFlexRuntimeConfig(config.flex, &configFile.BuildTool.Flex, &downloadsFile.Flex, toolchainToml)
 	if err != nil {
@@ -176,7 +183,7 @@ func BuildConfiguration(configFile *ConfigTomlTopLevel, downloadsFile *Downloads
 		return nil, err
 	}
 	config.tinyGo = new(runtimeConfigTinyGo)
-	err = populateTinyGoRuntimeConfig(config.tinyGo, &configFile.BuildTool.TinyGo, &downloadsFile.TinyGo)
+	err = populateTinyGoRuntimeConfig(config.tinyGo, &configFile.BuildTool.TinyGo, &downloadsFile.TinyGo, toolchainToml)
 	if err != nil {
 		return nil, err
 	}
@@ -238,6 +245,22 @@ func populateBisonRuntimeConfig(runtimeConfig *runtimeConfigBison, configFile *C
 			fileStruct.Sha256,
 			fileStruct.Size,
 		}
+	}
+	return nil
+}
+
+func populateBpfAsmRuntimeConfig(runtimeConfig *runtimeConfigBpfAsm, configFile *ConfigTomlBpfAsm, toolchainToml *ToolchainTomlTopLevel) error {
+	if configFile.Executable != "" {
+		runtimeConfig.executable = configFile.Executable
+	} else if toolchainToml.BpfAsm != nil && toolchainToml.BpfAsm.Executable != "" {
+		absExecutable, err := filepath.Abs(toolchainToml.BpfAsm.Executable)
+		if err != nil {
+			return err
+		}
+		runtimeConfig.executable = absExecutable
+	} else {
+		// Expect the user to have bpf_asm in the PATH.
+		runtimeConfig.executable = "bpf_asm"
 	}
 	return nil
 }
@@ -304,11 +327,23 @@ func populateLinuxRuntimeConfig(runtimeConfig *runtimeConfigLinux, configFile *C
 	return nil
 }
 
-func populateTinyGoRuntimeConfig(runtimeConfig *runtimeConfigTinyGo, configFile *ConfigTomlTinyGo, downloadsFile *DownloadsTomlTinyGo) error {
+func populateTinyGoRuntimeConfig(runtimeConfig *runtimeConfigTinyGo, configFile *ConfigTomlTinyGo, downloadsFile *DownloadsTomlTinyGo, toolchainToml *ToolchainTomlTopLevel) error {
 	if configFile.DownloadUrl != "" {
 		runtimeConfig.downloadUrlTemplate = configFile.DownloadUrl
 	} else {
 		runtimeConfig.downloadUrlTemplate = downloadsFile.DownloadUrlTemplate
+	}
+	if configFile.Executable != "" {
+		runtimeConfig.executable = configFile.Executable
+	} else if toolchainToml.TinyGo != nil && toolchainToml.TinyGo.Executable != "" {
+		absExecutable, err := filepath.Abs(toolchainToml.TinyGo.Executable)
+		if err != nil {
+			return err
+		}
+		runtimeConfig.executable = absExecutable
+	} else {
+		// Expect the user to have tinygo in the PATH.
+		runtimeConfig.executable = "tinygo"
 	}
 	runtimeConfig.filenameTemplate = downloadsFile.FilenameTemplate
 	if configFile.Version != "" {

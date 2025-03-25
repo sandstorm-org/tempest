@@ -76,6 +76,7 @@ func BootstrapTinyGo(buildToolConfig *RuntimeConfigBuildTool) ([]string, error) 
 		transformTinyGoTarGz := transformTinyGoTarGzFactory(tinyGoConfig.installDir)
 		err = extractTarGz(downloadPath, filterTinyGoTarGz, transformTinyGoTarGz)
 	}
+	tinyGoConfig.executable = filepath.Join(tinyGoConfig.installDir, "bin", "tinygo")
 	// Update the modified time of the TinyGo executable.
 	// This is a hack to satisfy `make`.
 	// The Makefile looks at the `tinygo` executable.  If its modified time
@@ -156,7 +157,7 @@ func getTinyGoConfig(buildToolConfig *RuntimeConfigBuildTool) (*tinyGoConfig, er
 	tinyGoVersionedDir := "tinygo-" + buildToolConfig.tinyGo.version
 	installDir := filepath.Join(buildToolConfig.toolChainDir, tinyGoVersionedDir)
 	// TinyGo executable
-	executable := filepath.Join(installDir, "bin", "tinygo")
+	executable := buildToolConfig.tinyGo.executable
 
 	tinyGoConfig := new(tinyGoConfig)
 	tinyGoConfig.downloadFile = downloadFile

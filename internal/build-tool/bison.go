@@ -38,12 +38,21 @@ func BootstrapBison(buildToolConfig *RuntimeConfigBuildTool) ([]string, error) {
 		messages = append(messages, "Failed to get Bison configuration")
 		return messages, err
 	}
+	exists, err := fileExistsAtPath(bisonConfig.executable)
+	if err != nil {
+		log.Printf("fileExistsAtPath err\n")
+		return messages, err
+	}
+	if exists {
+		messages = append(messages, fmt.Sprintf("Refusing to download and install Bison because %s exists", bisonConfig.executable))
+		return messages, err
+	}
 	err = ensureDownloadDirExists(buildToolConfig.downloadDir)
 	if err != nil {
 		return messages, err
 	}
 	downloadPath := filepath.Join(buildToolConfig.downloadDir, bisonConfig.downloadFile)
-	exists, err := fileExistsAtPath(downloadPath)
+	exists, err = fileExistsAtPath(downloadPath)
 	if err != nil {
 		return messages, err
 	}
@@ -64,29 +73,22 @@ func BootstrapBison(buildToolConfig *RuntimeConfigBuildTool) ([]string, error) {
 		return messages, err
 	}
 	messages = append(messages, fmt.Sprintf("%s has the correct SHA-256", downloadPath))
-	exists, err = fileExistsAtPath(bisonConfig.executable)
+	filterBisonTarXz := filterBisonTarXzFactory(bisonConfig.versionedDir)
+	transformBisonTarXz := transformBisonTarXzFactory(buildToolConfig.toolChainDir)
+	err = extractTarXz(downloadPath, filterBisonTarXz, transformBisonTarXz)
 	if err != nil {
-		log.Printf("fileExistsAtPath err\n")
+		messages = append(messages, fmt.Sprintf("Failed to extract %s", downloadPath))
 		return messages, err
 	}
-	if exists {
-		messages = append(messages, fmt.Sprintf("Refusing to install Bison because %s exists", bisonConfig.executable))
-	} else {
-		filterBisonTarXz := filterBisonTarXzFactory(bisonConfig.versionedDir)
-		transformBisonTarXz := transformBisonTarXzFactory(buildToolConfig.toolChainDir)
-		err = extractTarXz(downloadPath, filterBisonTarXz, transformBisonTarXz)
-		if err != nil {
-			return messages, err
-		}
-		err = configureBison(bisonConfig.installDir)
-		if err != nil {
-			return messages, err
-		}
-		err = makeBison(bisonConfig.installDir)
-		if err != nil {
-			return messages, err
-		}
+	err = configureBison(bisonConfig.installDir)
+	if err != nil {
+		return messages, err
 	}
+	err = makeBison(bisonConfig.installDir)
+	if err != nil {
+		return messages, err
+	}
+	bisonConfig.executable = filepath.Join(bisonConfig.installDir, "tests", "bison")
 	err = updateBisonToolchainToml(buildToolConfig.toolChainDir, bisonConfig.executable)
 	return messages, err
 }
@@ -164,7 +166,7 @@ func getBisonConfig(buildToolConfig *RuntimeConfigBuildTool) (*bisonConfig, erro
 	versionedDir := "bison-" + buildToolConfig.bison.version
 	installDir := filepath.Join(buildToolConfig.toolChainDir, versionedDir)
 	// Bison executable
-	executable := filepath.Join(installDir, "tests", "bison")
+	executable := buildToolConfig.bison.executable
 
 	bisonConfig := new(bisonConfig)
 	bisonConfig.downloadFile = downloadFile

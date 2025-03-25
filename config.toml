@@ -52,5 +52,8 @@ ToolChainDirTemplate = "toolchain"
 # Use DownloadUrl to override the DownloadUrlTemplate in downloads.toml.
 #DownloadUrl = "https://github.com/tinygo-org/tinygo/releases/download/v0.36.0/tinygo0.36.0.linux-amd64.tar.gz"
 
+# Use Executable to specify the path to an existing TinyGo executable.
+#Executable = "/usr/local/bin/tinygo"
+
 # Use Version to override the PreferredVersion in downloads.toml.
 #Version = "0.36.0"

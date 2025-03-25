@@ -39,6 +39,15 @@ func BootstrapBpfAsm(buildToolConfig *RuntimeConfigBuildTool) ([]string, error) 
 		messages = append(messages, "Failed to get bpf_asm configuration")
 		return messages, err
 	}
+	exists, err := fileExistsAtPath(bpfAsmConfig.executable)
+	if err != nil {
+		log.Printf("fileExistsAtPath err\n")
+		return messages, err
+	}
+	if exists {
+		messages = append(messages, fmt.Sprintf("Refusing to download and install bpf_asm because %s exists", bpfAsmConfig.executable))
+		return messages, err
+	}
 	var downloadMessages []string
 	var downloadPath string
 	downloadPath, downloadMessages, err = downloadAndVerifyLinuxTarball(buildToolConfig)
@@ -46,28 +55,23 @@ func BootstrapBpfAsm(buildToolConfig *RuntimeConfigBuildTool) ([]string, error) 
 		messages = append(messages, downloadMessages[:]...)
 		return messages, err
 	}
-	var exists bool
-	exists, err = fileExistsAtPath(bpfAsmConfig.executable)
+	desiredPrefixes := make([]string, 0, 3)
+	desiredPrefixes = append(desiredPrefixes, "linux-"+buildToolConfig.linux.version+"/tools/bpf/")
+	desiredPrefixes = append(desiredPrefixes, "linux-"+buildToolConfig.linux.version+"/tools/build/")
+	desiredPrefixes = append(desiredPrefixes, "linux-"+buildToolConfig.linux.version+"/tools/scripts/")
+	commonPrefix := "linux-" + buildToolConfig.linux.version
+	filterLinuxTarXz := filterLinuxTarXzFactory(desiredPrefixes)
+	transformLinuxTarXz := transformLinuxTarXzFactory(bpfAsmConfig.installDir, len(commonPrefix))
+	err = extractTarXz(downloadPath, filterLinuxTarXz, transformLinuxTarXz)
 	if err != nil {
-		log.Printf("fileExistsAtPath err\n")
+		messages = append(messages, fmt.Sprintf("Failed to extract %s", downloadPath))
 		return messages, err
 	}
-	if exists {
-		messages = append(messages, fmt.Sprintf("Refusing to unpack bpf_asm because %s exists", bpfAsmConfig.executable))
-	} else {
-		desiredPrefixes := make([]string, 0, 3)
-		desiredPrefixes = append(desiredPrefixes, "linux-"+buildToolConfig.linux.version+"/tools/bpf/")
-		desiredPrefixes = append(desiredPrefixes, "linux-"+buildToolConfig.linux.version+"/tools/build/")
-		desiredPrefixes = append(desiredPrefixes, "linux-"+buildToolConfig.linux.version+"/tools/scripts/")
-		commonPrefix := "linux-" + buildToolConfig.linux.version
-		filterLinuxTarXz := filterLinuxTarXzFactory(desiredPrefixes)
-		transformLinuxTarXz := transformLinuxTarXzFactory(bpfAsmConfig.installDir, len(commonPrefix))
-		err = extractTarXz(downloadPath, filterLinuxTarXz, transformLinuxTarXz)
-		if err != nil {
-			return messages, err
-		}
-		err = makeBpfAsm(bpfAsmConfig)
+	err = makeBpfAsm(bpfAsmConfig)
+	if err != nil {
+		return messages, err
 	}
+	bpfAsmConfig.executable = filepath.Join(bpfAsmConfig.makePath, "bpf_asm")
 	err = updateBpfAsmToolchainToml(buildToolConfig.toolChainDir, bpfAsmConfig.executable)
 	return messages, err
 }
@@ -82,13 +86,15 @@ func getBpfAsmConfig(buildToolConfig *RuntimeConfigBuildTool) (*bpfAsmConfig, er
 	} else if buildToolConfig.linux == nil {
 		return nil, fmt.Errorf("buildToolConfig.linux is nil")
 	}
+	// Bison executable
 	bisonExecutable := buildToolConfig.bison.executable
+	// Flex executable
 	flexExecutable := buildToolConfig.flex.executable
 	// Install directory
 	bpfAsmVersionedDir := "bpf_asm-" + buildToolConfig.linux.version
 	installDir := filepath.Join(buildToolConfig.toolChainDir, bpfAsmVersionedDir)
 	// BpfAsm executable
-	executable := filepath.Join(installDir, "tools", "bpf", "bpf_asm")
+	executable := buildToolConfig.bpfAsm.executable
 	// BpfAsm make path
 	makePath := filepath.Join(installDir, "tools", "bpf")
 

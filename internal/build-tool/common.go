@@ -187,6 +187,13 @@ func extractTarXz(txzArchive string, filter fileFilter, transform fileTransforme
 	return err
 }
 
+// Return true if a file exists at the path and the file is not a directory.
+//
+// The default executable for Cap'n Proto is "capnp".  This is also the name of
+// a directory in the root of the project.  fileExistsAtPath() was finding that
+// "capnp" (the directory) existed instead of noting that the Cap'n Proto
+// compiler "capnp" did not exist, thus it was refusing to build the Cap'n
+// Proto compiler.
 func fileExistsAtPath(filePath string) (bool, error) {
 	fileInfo, err := os.Stat(filePath)
 	if err != nil {
@@ -195,7 +202,7 @@ func fileExistsAtPath(filePath string) (bool, error) {
 		}
 		return false, err
 	}
-	return fileInfo != nil, nil
+	return fileInfo != nil && !fileInfo.IsDir(), nil
 }
 
 func setFileModifiedTimeToNow(filePath string) error {

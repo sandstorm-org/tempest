@@ -33,6 +33,7 @@ type ToolchainTomlTopLevel struct {
 
 type ToolchainTomlTool struct {
 	Executable string `toml:"Executable,omitempty"`
+	Version    string `toml:"Version,omitempty"`
 }
 
 func ReadToolchainToml(toolchainDir string) (*ToolchainTomlTopLevel, error) {

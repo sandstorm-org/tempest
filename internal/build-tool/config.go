@@ -115,11 +115,16 @@ type runtimeConfigBison struct {
 	executable          string
 	filenameTemplate    string
 	files               map[string]runtimeConfigFile
+	toolchainExecutable string
+	toolchainVersion    string
 	version             string
 }
 
 type runtimeConfigBpfAsm struct {
-	executable string
+	executable          string
+	toolchainExecutable string
+	toolchainVersion    string
+	version             string
 }
 
 type runtimeConfigCapnProto struct {
@@ -127,6 +132,8 @@ type runtimeConfigCapnProto struct {
 	executable          string
 	filenameTemplate    string
 	files               map[string]runtimeConfigFile
+	toolchainExecutable string
+	toolchainVersion    string
 	version             string
 }
 
@@ -135,6 +142,8 @@ type runtimeConfigFlex struct {
 	executable          string
 	filenameTemplate    string
 	files               map[string]runtimeConfigFile
+	toolchainExecutable string
+	toolchainVersion    string
 	version             string
 }
 
@@ -142,6 +151,7 @@ type runtimeConfigLinux struct {
 	downloadUrlTemplate string
 	filenameTemplate    string
 	files               map[string]runtimeConfigFile
+	toolchainVersion    string
 	version             string
 }
 
@@ -150,6 +160,8 @@ type runtimeConfigTinyGo struct {
 	executable          string
 	filenameTemplate    string
 	files               map[string]runtimeConfigFile
+	toolchainExecutable string
+	toolchainVersion    string
 	version             string
 }
 
@@ -184,7 +196,7 @@ func BuildConfiguration(configFile *ConfigTomlTopLevel, downloadsFile *Downloads
 		return nil, err
 	}
 	config.bpfAsm = new(runtimeConfigBpfAsm)
-	err = populateBpfAsmRuntimeConfig(config.bpfAsm, &configFile.BuildTool.BpfAsm, toolchainToml)
+	err = populateBpfAsmRuntimeConfig(config.bpfAsm, &configFile.BuildTool.BpfAsm, toolchainToml, &configFile.BuildTool.Linux, &downloadsFile.Linux)
 	if err != nil {
 		return nil, err
 	}
@@ -248,10 +260,16 @@ func populateBisonRuntimeConfig(runtimeConfig *runtimeConfigBison, configFile *C
 		}
 		runtimeConfig.executable = absExecutable
 	} else {
-		// Expect the user to have bison in the PATH.
-		runtimeConfig.executable = "bison"
+		runtimeConfig.executable = ""
 	}
 	runtimeConfig.filenameTemplate = downloadsFile.FilenameTemplate
+	if toolchainToml.Bison == nil {
+		runtimeConfig.toolchainExecutable = ""
+		runtimeConfig.toolchainVersion = ""
+	} else {
+		runtimeConfig.toolchainExecutable = toolchainToml.Bison.Executable
+		runtimeConfig.toolchainVersion = toolchainToml.Bison.Version
+	}
 	if configFile.Version != "" {
 		runtimeConfig.version = configFile.Version
 	} else {
@@ -270,18 +288,34 @@ func populateBisonRuntimeConfig(runtimeConfig *runtimeConfigBison, configFile *C
 	return nil
 }
 
-func populateBpfAsmRuntimeConfig(runtimeConfig *runtimeConfigBpfAsm, configFile *ConfigTomlBpfAsm, toolchainToml *ToolchainTomlTopLevel) error {
+func populateBpfAsmRuntimeConfig(runtimeConfig *runtimeConfigBpfAsm, configFile *ConfigTomlBpfAsm, toolchainToml *ToolchainTomlTopLevel, configFileLinux *ConfigTomlLinux, downloadsFileLinux *DownloadsTomlLinux) error {
+	// Version
+	if configFileLinux.Version != "" {
+		runtimeConfig.version = configFileLinux.Version
+	} else {
+		runtimeConfig.version = downloadsFileLinux.PreferredVersion
+	}
+	if runtimeConfig.version == "" {
+		return fmt.Errorf("bpf_asm is unable to get Linux's configured version")
+	}
+	// Executable
 	if configFile.Executable != "" {
 		runtimeConfig.executable = configFile.Executable
-	} else if toolchainToml.BpfAsm != nil && toolchainToml.BpfAsm.Executable != "" {
+	} else if toolchainToml.BpfAsm != nil && toolchainToml.BpfAsm.Executable != "" && toolchainToml.BpfAsm.Version == runtimeConfig.version {
 		absExecutable, err := filepath.Abs(toolchainToml.BpfAsm.Executable)
 		if err != nil {
 			return err
 		}
 		runtimeConfig.executable = absExecutable
 	} else {
-		// Expect the user to have bpf_asm in the PATH.
-		runtimeConfig.executable = "bpf_asm"
+		runtimeConfig.executable = ""
+	}
+	if toolchainToml.BpfAsm == nil {
+		runtimeConfig.toolchainExecutable = ""
+		runtimeConfig.toolchainVersion = ""
+	} else {
+		runtimeConfig.toolchainExecutable = toolchainToml.BpfAsm.Executable
+		runtimeConfig.toolchainVersion = toolchainToml.BpfAsm.Version
 	}
 	return nil
 }
@@ -301,10 +335,16 @@ func populateCapnProtoRuntimeConfig(runtimeConfig *runtimeConfigCapnProto, confi
 		}
 		runtimeConfig.executable = absExecutable
 	} else {
-		// Expect the user to have capnp in the PATH.
-		runtimeConfig.executable = "capnp"
+		runtimeConfig.executable = ""
 	}
 	runtimeConfig.filenameTemplate = downloadsFile.FilenameTemplate
+	if toolchainToml.CapnProto == nil {
+		runtimeConfig.toolchainExecutable = ""
+		runtimeConfig.toolchainVersion = ""
+	} else {
+		runtimeConfig.toolchainExecutable = toolchainToml.CapnProto.Executable
+		runtimeConfig.toolchainVersion = toolchainToml.CapnProto.Version
+	}
 	if configFile.Version != "" {
 		runtimeConfig.version = configFile.Version
 	} else {
@@ -338,11 +378,18 @@ func populateFlexRuntimeConfig(runtimeConfig *runtimeConfigFlex, configFile *Con
 		}
 		runtimeConfig.executable = absExecutable
 	} else {
-		// Expect the user to have flex in the PATH.
-		runtimeConfig.executable = "flex"
+		runtimeConfig.executable = ""
 	}
 	runtimeConfig.filenameTemplate = downloadsFile.FilenameTemplate
+	if toolchainToml.Flex == nil {
+		runtimeConfig.toolchainExecutable = ""
+		runtimeConfig.toolchainVersion = ""
+	} else {
+		runtimeConfig.toolchainExecutable = toolchainToml.Flex.Executable
+		runtimeConfig.toolchainVersion = toolchainToml.Flex.Version
+	}
 	if configFile.Version != "" {
+		runtimeConfig.version = configFile.Version
 		runtimeConfig.version = configFile.Version
 	} else {
 		runtimeConfig.version = downloadsFile.PreferredVersion
@@ -400,10 +447,16 @@ func populateTinyGoRuntimeConfig(runtimeConfig *runtimeConfigTinyGo, configFile 
 		}
 		runtimeConfig.executable = absExecutable
 	} else {
-		// Expect the user to have tinygo in the PATH.
-		runtimeConfig.executable = "tinygo"
+		runtimeConfig.executable = ""
 	}
 	runtimeConfig.filenameTemplate = downloadsFile.FilenameTemplate
+	if toolchainToml.TinyGo == nil {
+		runtimeConfig.toolchainExecutable = ""
+		runtimeConfig.toolchainVersion = ""
+	} else {
+		runtimeConfig.toolchainExecutable = toolchainToml.TinyGo.Executable
+		runtimeConfig.toolchainVersion = toolchainToml.TinyGo.Version
+	}
 	if configFile.Version != "" {
 		runtimeConfig.version = configFile.Version
 	} else {

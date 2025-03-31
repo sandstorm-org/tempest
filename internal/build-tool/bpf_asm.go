@@ -25,11 +25,14 @@ import (
 )
 
 type bpfAsmConfig struct {
-	bisonExecutable string
-	executable      string
-	flexExecutable  string
-	makePath        string
-	installDir      string
+	bisonExecutable     string
+	executable          string
+	flexExecutable      string
+	installDir          string
+	makePath            string
+	toolchainExecutable string
+	toolchainVersion    string
+	version             string
 }
 
 func BootstrapBpfAsm(buildToolConfig *RuntimeConfigBuildTool) ([]string, error) {
@@ -44,9 +47,19 @@ func BootstrapBpfAsm(buildToolConfig *RuntimeConfigBuildTool) ([]string, error) 
 		log.Printf("fileExistsAtPath err\n")
 		return messages, err
 	}
-	if exists {
-		messages = append(messages, fmt.Sprintf("Refusing to download and install bpf_asm because %s exists", bpfAsmConfig.executable))
-		return messages, err
+	if bpfAsmConfig.executable == bpfAsmConfig.toolchainExecutable {
+		if bpfAsmConfig.version == bpfAsmConfig.toolchainVersion && exists {
+			messages = append(messages, fmt.Sprintf("Skipping download and installation of bpf_asm because %s exists", bpfAsmConfig.executable))
+			return messages, err
+		}
+	} else if bpfAsmConfig.executable != "" {
+		if exists {
+			messages = append(messages, fmt.Sprintf("Skipping download and installation of bpf_asm because %s exists", bpfAsmConfig.executable))
+			return messages, err
+		} else {
+			err = fmt.Errorf("Specified bpf_asm executable %s is outside the toolchain and does not exist.")
+			return messages, err
+		}
 	}
 	var downloadMessages []string
 	var downloadPath string
@@ -72,7 +85,7 @@ func BootstrapBpfAsm(buildToolConfig *RuntimeConfigBuildTool) ([]string, error) 
 		return messages, err
 	}
 	bpfAsmConfig.executable = filepath.Join(bpfAsmConfig.makePath, "bpf_asm")
-	err = updateBpfAsmToolchainToml(buildToolConfig.toolChainDir, bpfAsmConfig.executable)
+	err = updateBpfAsmToolchainToml(buildToolConfig.toolChainDir, bpfAsmConfig.executable, bpfAsmConfig.version)
 	return messages, err
 }
 
@@ -86,17 +99,23 @@ func getBpfAsmConfig(buildToolConfig *RuntimeConfigBuildTool) (*bpfAsmConfig, er
 	} else if buildToolConfig.linux == nil {
 		return nil, fmt.Errorf("buildToolConfig.linux is nil")
 	}
+	// BpfAsm version
+	version := buildToolConfig.bpfAsm.version
 	// Bison executable
 	bisonExecutable := buildToolConfig.bison.executable
 	// Flex executable
 	flexExecutable := buildToolConfig.flex.executable
 	// Install directory
-	bpfAsmVersionedDir := "bpf_asm-" + buildToolConfig.linux.version
+	bpfAsmVersionedDir := "bpf_asm-" + version
 	installDir := filepath.Join(buildToolConfig.toolChainDir, bpfAsmVersionedDir)
 	// BpfAsm executable
 	executable := buildToolConfig.bpfAsm.executable
 	// BpfAsm make path
 	makePath := filepath.Join(installDir, "tools", "bpf")
+	// Toolchain executable
+	toolchainExecutable := buildToolConfig.bpfAsm.toolchainExecutable
+	// Toolchain version
+	toolchainVersion := buildToolConfig.bpfAsm.toolchainVersion
 
 	bpfAsmConfig := new(bpfAsmConfig)
 	bpfAsmConfig.bisonExecutable = bisonExecutable
@@ -104,6 +123,9 @@ func getBpfAsmConfig(buildToolConfig *RuntimeConfigBuildTool) (*bpfAsmConfig, er
 	bpfAsmConfig.flexExecutable = flexExecutable
 	bpfAsmConfig.installDir = installDir
 	bpfAsmConfig.makePath = makePath
+	bpfAsmConfig.toolchainExecutable = toolchainExecutable
+	bpfAsmConfig.toolchainVersion = toolchainVersion
+	bpfAsmConfig.version = version
 	return bpfAsmConfig, nil
 }
 
@@ -127,7 +149,7 @@ func makeBpfAsm(config *bpfAsmConfig) error {
 	return cmd.Run()
 }
 
-func updateBpfAsmToolchainToml(toolchainDir string, executable string) error {
+func updateBpfAsmToolchainToml(toolchainDir string, executable string, version string) error {
 	toolchainTomlTopLevel, err := ReadToolchainToml(toolchainDir)
 	if err != nil {
 		if !os.IsNotExist(err) {
@@ -139,5 +161,6 @@ func updateBpfAsmToolchainToml(toolchainDir string, executable string) error {
 		toolchainTomlTopLevel.BpfAsm = new(ToolchainTomlTool)
 	}
 	toolchainTomlTopLevel.BpfAsm.Executable = executable
+	toolchainTomlTopLevel.BpfAsm.Version = version
 	return WriteToolchainToml(toolchainDir, toolchainTomlTopLevel)
 }

@@ -29,7 +29,7 @@ GO_VERSION := 1.24.1
 GO := $(TOOLCHAIN_DIR)/go-$(GO_VERSION)/bin/go
 GO_BUILD := $(GO) build
 GO_GET := $(GO) get
-TINYGO_VERSION := 0.36.0
+TINYGO_VERSION := 0.37.0
 TINYGO := $(TOOLCHAIN_DIR)/tinygo-$(TINYGO_VERSION)/bin/tinygo
 
 ##

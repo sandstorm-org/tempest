@@ -130,7 +130,7 @@ $(BPF_ASM): $(BISON) $(BUILDTOOL) $(FLEX)
 	@echo Building bpf_asm from Linux $(BPF_ASM_VERSION)
 	$(BUILDTOOL) bootstrap-bpf_asm
 
-$(BUILDTOOL): $(GO)
+$(BUILDTOOL): $(GO) $(BUILDTOOL_MAIN) $(BUILDTOOL_PACKAGE)
 	$(GO_GET) ./internal/build-tool
 	$(GO_BUILD) -o $(BUILDTOOL) $(BUILDTOOL_MAIN)
 

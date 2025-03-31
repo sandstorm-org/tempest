@@ -28,11 +28,15 @@ Size = 1419096
 [linux]
 DownloadUrlTemplate = "https://cdn.kernel.org/pub/linux/kernel/v{{ .MajorVersion }}.x/{{ .Filename }}"
 filenameTemplate = "linux-{{ .Version }}.tar.xz"
-PreferredVersion = "6.13.5"
+PreferredVersion = "6.13.8"
 
 [linux.files."linux-6.13.5.tar.xz"]
 SHA-256 = "283ecb0784f3fbc16dd822fb1d9642e230ec7515ed33f120e551b839f355e6e2"
 Size = 148547124
+
+[linux.files."linux-6.13.8.tar.xz"]
+SHA-256 = "259afa59d73d676bec2ae89beacd949e08d54d3f70a7f8b0a742315095751abb"
+Size = 148581924
 
 [tinygo]
 DownloadUrlTemplate = "https://github.com/tinygo-org/tinygo/releases/download/v{{ .Version }}/{{ .Filename }}"

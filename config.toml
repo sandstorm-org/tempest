@@ -53,10 +53,10 @@ ToolChainDirTemplate = "toolchain"
 
 [build-tool.linux]
 # Use DownloadUrl to override the DownloadUrlTemplate in downloads.toml.
-#DownloadUrl = "https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.13.5.tar.xz"
+#DownloadUrl = "https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.13.8.tar.xz"
 
 # Use Version to override the PreferredVersion in downloads.toml.
-#Version = "6.13.5"
+#Version = "6.13.8"
 
 [build-tool.tinygo]
 # Use DownloadUrl to override the DownloadUrlTemplate in downloads.toml.

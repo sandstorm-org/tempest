@@ -16,13 +16,13 @@ ToolChainDirTemplate = "toolchain"
 
 [build-tool.bison]
 # Use DownloadUrl to override the DownloadUrlTemplate in downloads.toml.
-#DownloadUrl = "https://ftpmirrors.gnu.org/bison/bison-3.18.2.tar.xz"
+#DownloadUrl = "https://ftpmirrors.gnu.org/bison/bison-3.8.2.tar.xz"
 
 # Use Executable to specify the path to an existing Bison executable.
 #Executable = "/usr/local/bin/bison"
 
 # Use Version to override the PreferredVersion in downloads.toml.
-#Version = "3.18.2"
+#Version = "3.8.2"
 
 [build-tool.bpf_asm]
 # bpf_asm is a tool from the Linux kernel.  To configure downloads of the Linux

@@ -25,6 +25,15 @@ PreferredVersion = "2.6.4"
 SHA-256 = "e87aae032bf07c26f85ac0ed3250998c37621d95f8bd748b31f15b33c45ee995"
 Size = 1419096
 
+[go-capnp]
+DownloadUrlTemplate = "https://github.com/capnproto/go-capnp/archive/refs/tags/{{ .Filename }}"
+FilenameTemplate = "v{{ .Version }}.tar.gz"
+PreferredVersion = "3.1.0-alpha.1"
+
+[go-capnp.files."v3.1.0-alpha.1.tar.gz"]
+SHA-256 = "054d04ba4cbdce279c3f251b1df2b2907e5bf6746f4fda958c081bf142eca6c3"
+Size = 508859
+
 [linux]
 DownloadUrlTemplate = "https://cdn.kernel.org/pub/linux/kernel/v{{ .MajorVersion }}.x/{{ .Filename }}"
 filenameTemplate = "linux-{{ .Version }}.tar.xz"

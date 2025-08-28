@@ -28,6 +28,8 @@ type ToolchainTomlTopLevel struct {
 	BpfAsm    *ToolchainTomlTool `toml:"bpf-asm"`
 	CapnProto *ToolchainTomlTool `toml:"capnproto"`
 	Flex      *ToolchainTomlTool `toml:"flex"`
+	Go        *ToolchainTomlTool `toml:"go"`
+	GoCapnp   *ToolchainTomlTool `toml:"go-capnp"`
 	TinyGo    *ToolchainTomlTool `toml:"tinygo"`
 }
 

@@ -65,6 +65,16 @@ func downloadUrlToDir(downloadUrl string, downloadDir string, downloadPath strin
 	return err
 }
 
+func envMap() map[string]string {
+	result := make(map[string]string)
+	for _, envLine := range os.Environ() {
+		if i := strings.Index(envLine, "="); i > 0 {
+			result[envLine[:i]] = envLine[i+1:]
+		}
+	}
+	return result
+}
+
 func ensureDownloadDirExists(downloadDir string) error {
 
 	err := os.MkdirAll(downloadDir, 0750)

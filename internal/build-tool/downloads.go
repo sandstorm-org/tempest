@@ -24,6 +24,7 @@ type DownloadsTomlTopLevel struct {
 	Bison     DownloadsTomlBison     `toml:"bison"`
 	CapnProto DownloadsTomlCapnProto `toml:"capnproto"`
 	Flex      DownloadsTomlFlex      `toml:"flex"`
+	GoCapnp   DownloadsTomlGoCapnp   `toml:"go-capnp"`
 	Linux     DownloadsTomlLinux     `toml:"linux"`
 	TinyGo    DownloadsTomlTinyGo    `toml:"tinygo"`
 }
@@ -43,6 +44,13 @@ type DownloadsTomlCapnProto struct {
 }
 
 type DownloadsTomlFlex struct {
+	DownloadUrlTemplate string
+	FilenameTemplate    string
+	Files               map[string]DownloadsTomlFile
+	PreferredVersion    string
+}
+
+type DownloadsTomlGoCapnp struct {
 	DownloadUrlTemplate string
 	FilenameTemplate    string
 	Files               map[string]DownloadsTomlFile

@@ -19,6 +19,7 @@ package buildtool
 import (
 	"bytes"
 	"fmt"
+	"log"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -52,6 +53,8 @@ type ConfigTomlBuildTool struct {
 	BpfAsm               ConfigTomlBpfAsm    `toml:"bpf_asm"`
 	CapnProto            ConfigTomlCapnProto `toml:"capnproto"`
 	Flex                 ConfigTomlFlex      `toml:"flex"`
+	Go                   ConfigTomlGo        `toml:"go"`
+	GoCapnp              ConfigTomlGoCapnp   `toml:"go-capnp"`
 	Linux                ConfigTomlLinux     `toml:"linux"`
 	TinyGo               ConfigTomlTinyGo    `toml:"tinygo"`
 }
@@ -64,6 +67,7 @@ type ConfigTomlBison struct {
 
 type ConfigTomlBpfAsm struct {
 	Executable string
+	GoPath     string
 }
 
 type ConfigTomlCapnProto struct {
@@ -73,6 +77,17 @@ type ConfigTomlCapnProto struct {
 }
 
 type ConfigTomlFlex struct {
+	DownloadUrl string
+	Executable  string
+	Version     string
+}
+
+type ConfigTomlGo struct {
+	Executable     string
+	GoPathTemplate string
+}
+
+type ConfigTomlGoCapnp struct {
 	DownloadUrl string
 	Executable  string
 	Version     string
@@ -93,6 +108,11 @@ type configTomlDirTemplateValues struct {
 	Home string
 }
 
+type configGoPathTemplateValues struct {
+	Home         string
+	ToolChainDir string
+}
+
 // Runtime config types
 //
 // Runtime configuration is private to the package, so struct names and field
@@ -102,10 +122,13 @@ type RuntimeConfigBuildTool struct {
 	toolChainDir      string
 	downloadDir       string
 	downloadUserAgent string
+	goExecutable      string
+	goPath            string
 	bison             *runtimeConfigBison
 	bpfAsm            *runtimeConfigBpfAsm
 	capnProto         *runtimeConfigCapnProto
 	flex              *runtimeConfigFlex
+	goCapnp           *runtimeConfigGoCapnp
 	linux             *runtimeConfigLinux
 	tinyGo            *runtimeConfigTinyGo
 }
@@ -147,6 +170,18 @@ type runtimeConfigFlex struct {
 	version             string
 }
 
+type runtimeConfigGoCapnp struct {
+	downloadUrlTemplate string
+	executable          string
+	filenameTemplate    string
+	files               map[string]runtimeConfigFile
+	goExecutable        string
+	goPath              string
+	toolchainExecutable string
+	toolchainVersion    string
+	version             string
+}
+
 type runtimeConfigLinux struct {
 	downloadUrlTemplate string
 	filenameTemplate    string
@@ -173,11 +208,11 @@ type runtimeConfigFile struct {
 func BuildConfiguration(configFile *ConfigTomlTopLevel, downloadsFile *DownloadsTomlTopLevel) (*RuntimeConfigBuildTool, error) {
 	config := new(RuntimeConfigBuildTool)
 	var err error
-	config.toolChainDir, err = buildDirWithTemplate("toolchainDir", configFile.BuildTool.ToolChainDirTemplate)
+	config.toolChainDir, err = buildDirWithHomeTemplate("toolchainDir", configFile.BuildTool.ToolChainDirTemplate)
 	if err != nil {
 		return nil, err
 	}
-	config.downloadDir, err = buildDirWithTemplate("downloadDir", configFile.BuildTool.DownloadDirTemplate)
+	config.downloadDir, err = buildDirWithHomeTemplate("downloadDir", configFile.BuildTool.DownloadDirTemplate)
 	if err != nil {
 		return nil, err
 	}
@@ -189,6 +224,39 @@ func BuildConfiguration(configFile *ConfigTomlTopLevel, downloadsFile *Downloads
 			return nil, err
 		}
 		toolchainToml = new(ToolchainTomlTopLevel)
+	}
+	if configFile.BuildTool.Go.Executable != "" {
+		config.goExecutable, err = filepath.Abs(configFile.BuildTool.Go.Executable)
+		if err != nil {
+			return nil, err
+		}
+	} else if toolchainToml.Go.Executable != "" {
+		config.goExecutable, err = filepath.Abs(toolchainToml.Go.Executable)
+		if err != nil {
+			return nil, err
+		}
+	}
+	env := envMap()
+	goPath, envHasGoPath := env["GOPATH"]
+	if envHasGoPath {
+		config.goPath = goPath
+		if configFile.BuildTool.Go.GoPathTemplate != "" {
+			log.Print("GOPATH environment variable set and [build-tool.go].GoPathTemplate set in config.toml")
+			log.Print("Please set only one of:")
+			log.Print(" - GOPATH environment variable")
+			log.Print(" - [build-tool.go].GoPathTemplate in config.toml")
+			panic("GOPATH overload")
+		}
+	} else if configFile.BuildTool.Go.GoPathTemplate != "" {
+		config.goPath, err = buildDirWithToolChainDirTemplate("goPath", configFile.BuildTool.Go.GoPathTemplate, config.toolChainDir)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		config.goPath, err = filepath.Abs(filepath.Join(config.toolChainDir, "gopath"))
+		if err != nil {
+			return nil, err
+		}
 	}
 	config.bison = new(runtimeConfigBison)
 	err = populateBisonRuntimeConfig(config.bison, &configFile.BuildTool.Bison, &downloadsFile.Bison, toolchainToml)
@@ -210,6 +278,11 @@ func BuildConfiguration(configFile *ConfigTomlTopLevel, downloadsFile *Downloads
 	if err != nil {
 		return nil, err
 	}
+	config.goCapnp = new(runtimeConfigGoCapnp)
+	err = populateGoCapnpRuntimeConfig(config.goCapnp, &configFile.BuildTool.GoCapnp, &downloadsFile.GoCapnp, toolchainToml)
+	if err != nil {
+		return nil, err
+	}
 	config.linux = new(runtimeConfigLinux)
 	err = populateLinuxRuntimeConfig(config.linux, &configFile.BuildTool.Linux, &downloadsFile.Linux)
 	if err != nil {
@@ -223,7 +296,7 @@ func BuildConfiguration(configFile *ConfigTomlTopLevel, downloadsFile *Downloads
 	return config, nil
 }
 
-func buildDirWithTemplate(templateName string, dirTemplate string) (string, error) {
+func buildDirWithHomeTemplate(templateName string, dirTemplate string) (string, error) {
 	user, err := user.Current()
 	if err != nil {
 		return "", err
@@ -231,6 +304,29 @@ func buildDirWithTemplate(templateName string, dirTemplate string) (string, erro
 	homeDirectory := user.HomeDir
 	values := configTomlDirTemplateValues{
 		homeDirectory,
+	}
+	parsedTemplate, err := template.New(templateName).Parse(dirTemplate)
+	if err != nil {
+		return "", err
+	}
+	var buffer bytes.Buffer
+	err = parsedTemplate.Execute(&buffer, values)
+	if err != nil {
+		return "", err
+	}
+	result := buffer.String()
+	return result, nil
+}
+
+func buildDirWithToolChainDirTemplate(templateName string, dirTemplate string, toolChainDir string) (string, error) {
+	user, err := user.Current()
+	if err != nil {
+		return "", err
+	}
+	homeDirectory := user.HomeDir
+	values := configGoPathTemplateValues{
+		homeDirectory,
+		toolChainDir,
 	}
 	parsedTemplate, err := template.New(templateName).Parse(dirTemplate)
 	if err != nil {
@@ -396,6 +492,50 @@ func populateFlexRuntimeConfig(runtimeConfig *runtimeConfigFlex, configFile *Con
 	}
 	if runtimeConfig.version == "" {
 		return fmt.Errorf("Flex has no configured version")
+	}
+	runtimeConfig.files = make(map[string]runtimeConfigFile)
+	for fileName, fileStruct := range downloadsFile.Files {
+		runtimeConfig.files[fileName] = runtimeConfigFile{
+			fileStruct.Sha256,
+			fileStruct.Size,
+		}
+	}
+	return nil
+}
+
+func populateGoCapnpRuntimeConfig(runtimeConfig *runtimeConfigGoCapnp, configFile *ConfigTomlGoCapnp, downloadsFile *DownloadsTomlGoCapnp, toolchainToml *ToolchainTomlTopLevel) error {
+	if configFile.DownloadUrl != "" {
+		runtimeConfig.downloadUrlTemplate = configFile.DownloadUrl
+	} else {
+		runtimeConfig.downloadUrlTemplate = downloadsFile.DownloadUrlTemplate
+	}
+	if configFile.Executable != "" {
+		runtimeConfig.executable = configFile.Executable
+	} else if toolchainToml.GoCapnp != nil && toolchainToml.GoCapnp.Executable != "" {
+		absExecutable, err := filepath.Abs(toolchainToml.GoCapnp.Executable)
+		if err != nil {
+			return err
+		}
+		runtimeConfig.executable = absExecutable
+	} else {
+		runtimeConfig.executable = ""
+	}
+	runtimeConfig.filenameTemplate = downloadsFile.FilenameTemplate
+	if toolchainToml.GoCapnp == nil {
+		runtimeConfig.toolchainExecutable = ""
+		runtimeConfig.toolchainVersion = ""
+	} else {
+		runtimeConfig.toolchainExecutable = toolchainToml.GoCapnp.Executable
+		runtimeConfig.toolchainVersion = toolchainToml.GoCapnp.Version
+	}
+	if configFile.Version != "" {
+		runtimeConfig.version = configFile.Version
+		runtimeConfig.version = configFile.Version
+	} else {
+		runtimeConfig.version = downloadsFile.PreferredVersion
+	}
+	if runtimeConfig.version == "" {
+		return fmt.Errorf("go-capnp has no configured version")
 	}
 	runtimeConfig.files = make(map[string]runtimeConfigFile)
 	for fileName, fileStruct := range downloadsFile.Files {

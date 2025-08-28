@@ -12,6 +12,7 @@ BUILDTOOL_PACKAGE := \
 		     internal/build-tool/config.go \
 		     internal/build-tool/downloads.go \
 		     internal/build-tool/flex.go \
+		     internal/build-tool/go-capnp.go \
 		     internal/build-tool/linux.go \
 		     internal/build-tool/tinygo.go \
 		     internal/build-tool/toolchain.go \
@@ -29,6 +30,10 @@ GO_VERSION := 1.24.3
 GO := $(TOOLCHAIN_DIR)/go-$(GO_VERSION)/bin/go
 GO_BUILD := $(GO) build
 GO_GET := $(GO) get
+GOCAPNP_VERSION := 3.1.0-alpha.1
+GOCAPNP := $(TOOLCHAIN_DIR)/go-capnp-$(GOCAPNP_VERSION)/bin/go-capnp
+# GOPATH_DIR to not collide with GOPATH
+GOPATH_DIR := $(abspath $(TOOLCHAIN_DIR)/gopath)
 TINYGO_VERSION := 0.37.0
 TINYGO := $(TOOLCHAIN_DIR)/tinygo-$(TINYGO_VERSION)/bin/tinygo
 
@@ -120,7 +125,7 @@ check: all
 #
 
 .PHONY: toolchain
-toolchain: $(BISON) $(BPF_ASM) $(CAPNP) $(FLEX) $(GO) $(TINYGO)
+toolchain: $(BISON) $(BPF_ASM) $(CAPNP) $(FLEX) $(GO) $(GOCAPNP) $(TINYGO)
 
 $(BISON): $(BUILDTOOL)
 	@echo Building Bison $(BISON_VERSION)
@@ -130,9 +135,9 @@ $(BPF_ASM): $(BISON) $(BUILDTOOL) $(FLEX)
 	@echo Building bpf_asm from Linux $(BPF_ASM_VERSION)
 	$(BUILDTOOL) bootstrap-bpf_asm
 
-$(BUILDTOOL): $(GO) $(BUILDTOOL_MAIN) $(BUILDTOOL_PACKAGE)
-	$(GO_GET) ./internal/build-tool
-	$(GO_BUILD) -o $(BUILDTOOL) $(BUILDTOOL_MAIN)
+$(BUILDTOOL): $(BUILDTOOL_MAIN) $(BUILDTOOL_PACKAGE) $(GO) $(GOPATH_DIR)
+	GOPATH="$(GOPATH_DIR)" $(GO_GET) ./internal/build-tool
+	GOPATH="$(GOPATH_DIR)" $(GO_BUILD) -o $(BUILDTOOL) $(BUILDTOOL_MAIN)
 
 $(CAPNP): $(BUILDTOOL)
 	@echo Building Cap\'n Proto $(CAPNP_VERSION)
@@ -145,6 +150,13 @@ $(FLEX): $(BUILDTOOL)
 $(GO):
 	@echo Setting up Go $(GO_VERSION)
 	./scripts/bootstrap-build-tool.sh
+
+$(GOCAPNP): $(BUILDTOOL) $(GOPATH_DIR)
+	@echo Setting up Cap\'n Proto for Go
+	GOPATH="$(GOPATH_DIR)" $(BUILDTOOL) bootstrap-go-capnp
+
+$(GOPATH_DIR):
+	mkdir -p "$(GOPATH_DIR)"
 
 $(TINYGO): $(BUILDTOOL)
 	@echo Setting up TinyGo $(TINYGO_VERSION)

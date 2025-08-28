@@ -51,6 +51,26 @@ ToolChainDirTemplate = "toolchain"
 # Use Version to override the PreferredVersion in downloads.toml.
 #Version = "2.6.4"
 
+[build-tool.go]
+# Use Executable to specify the path to an existing Go executable.
+#Executable = "/usr/local/bin/go"
+
+# Use GoPathTemplate to specify a GOPATH value.
+# GoPathTemplate supports the GoVersion, Home and ToolChain template variables.
+# {{ .Home }} will expand to the current user's home directory.
+# {{ .ToolChainDir }} will expand to the ToolChainDir directory.
+#GoPathTemplate = "{{ .ToolChainDir }}/gopath"
+
+[build-tool.go-capnp]
+# Use DownloadUrl to override the DownloadUrlTemplate in downloads.toml.
+#DownloadUrl = "https://github.com/capnproto/go-capnp/archive/refs/tags/v3.1.0-alpha.1.tar.gz"
+
+# Use Executable to specify the path to an existing Flex executable.
+#Executable = "/usr/local/bin/capnpc-go"
+
+# Use Version to override the PreferredVersion in downloads.toml.
+#Version = "3.1.0-alpha.1"
+
 [build-tool.linux]
 # Use DownloadUrl to override the DownloadUrlTemplate in downloads.toml.
 #DownloadUrl = "https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.13.8.tar.xz"

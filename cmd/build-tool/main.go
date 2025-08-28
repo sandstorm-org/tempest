@@ -16,6 +16,7 @@ var CLI struct {
 	BootstrapBpfAsm    struct{} `cmd:"" help:"Bootstrap bpf_asm" name:"bootstrap-bpf_asm"`
 	BootstrapCapnProto struct{} `cmd:"" help:"Bootstrap Cap'n Proto" name:"bootstrap-capnproto"`
 	BootstrapFlex      struct{} `cmd:"" help:"Bootstrap Flex"`
+	BootstrapGoCapnp   struct{} `cmd:"" help:"Bootstrap go-capnp"`
 	BootstrapTinygo    struct{} `cmd:"" help:"Bootstrap TinyGo"`
 
 	Config        string `default:"./config.toml" help:"path to the config file"`
@@ -55,6 +56,13 @@ func main() {
 		break
 	case "bootstrap-flex":
 		messages, err := buildtool.BootstrapFlex(config)
+		logMessages(CLI.Verbose, messages)
+		if err != nil {
+			log.Fatal(err)
+		}
+		break
+	case "bootstrap-go-capnp":
+		messages, err := buildtool.BootstrapGoCapnp(config)
 		logMessages(CLI.Verbose, messages)
 		if err != nil {
 			log.Fatal(err)

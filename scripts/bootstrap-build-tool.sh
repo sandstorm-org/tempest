@@ -48,6 +48,8 @@ go_download_url="https://go.dev/dl/${go_destination_file}"
 go_expected_sha256="3333f6ea53afa971e9078895eaa4ac7204a8c6b5c68c10e6bc9a33e8e391bdd8"
 go_downloaded_file="${DOWNLOAD_CACHE_DIR}/${go_destination_file}"
 go_install_dir="${toolchain_dir}/go-${go_version}"
+go_executable_file="toolchain/go-${go_version}/bin/go"
+toolchain_toml="${toolchain_dir}/toolchain.toml"
 
 check_for_existing_installation() {
 	install_dir="$1"
@@ -86,6 +88,16 @@ check_for_prerequisites() {
 # Create the download cache directory if it does not exist.
 create_download_cache_dir() {
 	mkdir --parents "${DOWNLOAD_CACHE_DIR}"
+}
+
+# Create the toolchain.toml file if it does not exist.
+create_toolchain_toml() {
+	toolchain_toml="$1"
+	go_executable="$2"
+	go_version="$3"
+	if [ ! -f "${toolchain_toml}" ]; then
+		printf '[go]\n  Executable = "%s"\n  Version = "%s"\n' "${go_executable}" "${go_version}" >"${toolchain_toml}"
+	fi
 }
 
 # Download Go from go.dev.
@@ -216,3 +228,4 @@ create_download_cache_dir
 download_go "${go_download_url}" "${go_downloaded_file}"
 verify_sha256 "${go_expected_sha256}" "${go_downloaded_file}"
 extract_go "${go_downloaded_file}" "${go_install_dir}"
+create_toolchain_toml "${toolchain_toml}" "${go_executable_file}" "${go_version}"

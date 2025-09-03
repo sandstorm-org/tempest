@@ -2,7 +2,8 @@
 ## Variables
 ##
 
-BUILDTOOL := _build/build-tool
+BUILD_DIR := _build
+BUILDTOOL := $(BUILD_DIR)/build-tool
 BUILDTOOL_MAIN := cmd/build-tool/main.go
 BUILDTOOL_PACKAGE := \
 		     internal/build-tool/bison.go \
@@ -34,6 +35,13 @@ GOCAPNP_VERSION := 3.1.0-alpha.1
 GOCAPNP := $(TOOLCHAIN_DIR)/go-capnp-$(GOCAPNP_VERSION)/bin/go-capnp
 # GOPATH_DIR to not collide with GOPATH
 GOPATH_DIR := $(abspath $(TOOLCHAIN_DIR)/gopath)
+TEMPEST_SANDBOX_LAUNCHER := $(BUILD_DIR)/tempest-sandbox-launcher
+TEMPEST_SANDBOX_LAUNCHER_GEN := \
+				$(BUILD_DIR)/bpf_filter.h \
+				$(BUILD_DIR)/constants.h \
+				$(BUILD_DIR)/filter_preproc.s \
+				$(BUILD_DIR)/gen-clean-h
+TEMPEST_SANDBOX_LAUNCHER_OBJ := c/sandbox-launcher.o
 TINYGO_VERSION := 0.37.0
 TINYGO := $(TOOLCHAIN_DIR)/tinygo-$(TINYGO_VERSION)/bin/tinygo
 
@@ -64,8 +72,7 @@ all: build
 #
 
 .PHONY: clean
-clean:
-	cd c && $(MAKE) clean
+clean: clean-tempest-sandbox-launcher
 	rm -rf _build
 	rm -f \
 		go/internal/server/embed/*.wasm \
@@ -81,6 +88,12 @@ clean-build-tool-cache:
 	# Used by scripts/bootstrap-build-tool.sh, cmd/build-tool and
 	# internal/build-tool
 	if [ -n "${HOME}" ]; then rm -rf "${HOME}/.cache/tempest-build-tool"; fi
+
+.PHONY: clean-tempest-sandbox-launcher
+clean-tempest-sandbox-launcher:
+	rm -f $(TEMPEST_SANDBOX_LAUNCHER)
+	rm -f $(TEMPEST_SANDBOX_LAUNCHER_GEN)
+	rm -f c/*.o c/*.d
 
 .PHONY: clean-toolchain
 clean-toolchain:
@@ -111,6 +124,32 @@ lint:
 build install dev test-app export-import:
 	@# Just shell out to make.go.
 	go run internal/make/make.go $@
+
+#
+# Sandbox Launcher
+#
+c/%.o: c/%.c
+	$(CC) $(CFLAGS) -I $(BUILD_DIR) -std=c11 -Wall -Wextra -MMD -c -o $@ $<
+
+$(TEMPEST_SANDBOX_LAUNCHER): $(BPF_ASM) $(TEMPEST_SANDBOX_LAUNCHER_OBJ)
+	$(CC) $(LDFLAGS) -o $@ $(TEMPEST_SANDBOX_LAUNCHER_OBJ)
+
+$(TEMPEST_SANDBOX_LAUNCHER_OBJ): $(BUILD_DIR)/bpf_filter.h
+
+$(BUILD_DIR)/gen-clean-h: c/gen-clean-h.o
+	$(CC) $(LDFLAGS) -o $@ $<
+
+$(BUILD_DIR)/constants.h: $(BUILD_DIR)/gen-clean-h
+	$(BUILD_DIR)/gen-clean-h > $@
+
+$(BUILD_DIR)/filter_preproc.s: $(BUILD_DIR)/constants.h c/filter.s
+	cpp -I $(BUILD_DIR) c/filter.s -o $@
+
+$(BUILD_DIR)/bpf_filter.h: $(BUILD_DIR)/filter_preproc.s
+	echo $(BPF_ASM) -c \< $< \> $@
+	$(BPF_ASM) -c < $< > $@
+
+-include c/*.d
 
 #
 # Test Targets

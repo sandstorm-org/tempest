@@ -5,8 +5,11 @@ User = "sandstorm"
 Group = "sandstorm"
 
 [build-tool]
-# DownloadDirTemplate supports the Home template variable, i.e., {{ .Home }}
-# will expand to the current user's home directory.
+# BuildDirTemplate supports the Home template variable, i.e., {{ .Home }} will
+# expect to the current user's home directory.
+BuildDirTemplate = "_build"
+
+# DownloadDirTemplate supports the Home template variable.
 DownloadDirTemplate = "{{ .Home }}/.cache/tempest-build-tool/downloads"
 
 DownloadUserAgent = "tempest-build-tool"

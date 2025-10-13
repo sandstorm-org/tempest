@@ -45,10 +45,12 @@ type ConfigTomlTempest struct {
 }
 
 type ConfigTomlBuildTool struct {
-	ToolChainDirTemplate string
+	BuildDirTemplate     string
 	DownloadDirTemplate  string
 	DownloadUserAgent    string
 	DownloadsFile        string
+	ToolChainDirTemplate string
+
 	Bison                ConfigTomlBison     `toml:"bison"`
 	BpfAsm               ConfigTomlBpfAsm    `toml:"bpf_asm"`
 	CapnProto            ConfigTomlCapnProto `toml:"capnproto"`
@@ -120,6 +122,7 @@ type configGoPathTemplateValues struct {
 
 type RuntimeConfigBuildTool struct {
 	toolChainDir      string
+	BuildDir          string
 	downloadDir       string
 	downloadUserAgent string
 	goExecutable      string
@@ -208,7 +211,7 @@ type runtimeConfigFile struct {
 func BuildConfiguration(configFile *ConfigTomlTopLevel, downloadsFile *DownloadsTomlTopLevel) (*RuntimeConfigBuildTool, error) {
 	config := new(RuntimeConfigBuildTool)
 	var err error
-	config.toolChainDir, err = buildDirWithHomeTemplate("toolchainDir", configFile.BuildTool.ToolChainDirTemplate)
+	config.BuildDir, err = buildDirWithHomeTemplate("buildDir", configFile.BuildTool.BuildDirTemplate)
 	if err != nil {
 		return nil, err
 	}
@@ -217,6 +220,10 @@ func BuildConfiguration(configFile *ConfigTomlTopLevel, downloadsFile *Downloads
 		return nil, err
 	}
 	config.downloadUserAgent = configFile.BuildTool.DownloadUserAgent
+	config.toolChainDir, err = buildDirWithHomeTemplate("toolChainDir", configFile.BuildTool.ToolChainDirTemplate)
+	if err != nil {
+		return nil, err
+	}
 	var toolchainToml *ToolchainTomlTopLevel
 	toolchainToml, err = ReadToolchainToml(config.toolChainDir)
 	if err != nil {

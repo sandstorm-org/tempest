@@ -23,6 +23,7 @@ import (
 	"os"
 	"os/user"
 	"path/filepath"
+	"runtime"
 	"text/template"
 
 	"github.com/BurntSushi/toml"
@@ -111,6 +112,7 @@ type configTomlDirTemplateValues struct {
 }
 
 type configGoPathTemplateValues struct {
+	GoVersion    string
 	Home         string
 	ToolChainDir string
 }
@@ -330,8 +332,10 @@ func buildDirWithToolChainDirTemplate(templateName string, dirTemplate string, t
 	if err != nil {
 		return "", err
 	}
+	goVersion := runtime.Version()
 	homeDirectory := user.HomeDir
 	values := configGoPathTemplateValues{
+		goVersion,
 		homeDirectory,
 		toolChainDir,
 	}

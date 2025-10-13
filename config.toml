@@ -60,6 +60,7 @@ ToolChainDirTemplate = "toolchain"
 
 # Use GoPathTemplate to specify a GOPATH value.
 # GoPathTemplate supports the GoVersion, Home and ToolChain template variables.
+# {{ .GoVersion }} will expand to the version of Go which built build-tool.
 # {{ .Home }} will expand to the current user's home directory.
 # {{ .ToolChainDir }} will expand to the ToolChainDir directory.
 #GoPathTemplate = "{{ .ToolChainDir }}/gopath"

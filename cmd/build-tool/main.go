@@ -6,6 +6,7 @@ import (
 
 	"github.com/alecthomas/kong"
 	buildtool "sandstorm.org/go/tempest/internal/build-tool"
+	generate "sandstorm.org/go/tempest/internal/build-tool/generate"
 )
 
 const DefaultConfigPath = "./config.toml"
@@ -18,6 +19,8 @@ var CLI struct {
 	BootstrapFlex      struct{} `cmd:"" help:"Bootstrap Flex"`
 	BootstrapGoCapnp   struct{} `cmd:"" help:"Bootstrap go-capnp"`
 	BootstrapTinygo    struct{} `cmd:"" help:"Bootstrap TinyGo"`
+
+	GenerateCapnp struct{} `cmd:"" help:"Generate Go files from Cap'n Proto files"`
 
 	Config        string `default:"./config.toml" help:"path to the config file"`
 	DownloadsFile string `default:"./internal/build-tool/downloads.toml" help:"path to the downloads information file"`
@@ -70,6 +73,12 @@ func main() {
 		break
 	case "bootstrap-tinygo":
 		messages, err := buildtool.BootstrapTinyGo(config)
+		logMessages(CLI.Verbose, messages)
+		if err != nil {
+			log.Fatal(err)
+		}
+	case "generate-capnp":
+		messages, err := generate.GenerateCapnp(config)
 		logMessages(CLI.Verbose, messages)
 		if err != nil {
 			log.Fatal(err)

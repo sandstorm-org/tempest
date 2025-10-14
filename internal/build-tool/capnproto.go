@@ -33,8 +33,8 @@ type capnProtoConfig struct {
 	executable          string
 	expectedFileSize    int64
 	expectedSha256      string
-	installDir          string
 	tarGzDir            string
+	toolchainDir        string
 	toolchainExecutable string
 	toolchainVersion    string
 	version             string
@@ -76,11 +76,11 @@ func BootstrapCapnProto(buildToolConfig *RuntimeConfigBuildTool) ([]string, erro
 			return messages, err
 		}
 	}
-	err = ensureDownloadDirExists(buildToolConfig.downloadDir)
+	err = ensureDownloadDirExists(buildToolConfig.Directories.DownloadDir)
 	if err != nil {
 		return messages, err
 	}
-	downloadPath := filepath.Join(buildToolConfig.downloadDir, capnProtoConfig.downloadFile)
+	downloadPath := filepath.Join(buildToolConfig.Directories.DownloadDir, capnProtoConfig.downloadFile)
 	exists, err = fileExistsAtPath(downloadPath)
 	if err != nil {
 		return messages, err
@@ -88,7 +88,7 @@ func BootstrapCapnProto(buildToolConfig *RuntimeConfigBuildTool) ([]string, erro
 	if exists {
 		messages = append(messages, fmt.Sprintf("Skipping Cap'n Proto download because %s exists", downloadPath))
 	} else {
-		err := downloadUrlToDir(capnProtoConfig.downloadUrl, buildToolConfig.downloadDir, downloadPath)
+		err := downloadUrlToDir(capnProtoConfig.downloadUrl, buildToolConfig.Directories.DownloadDir, downloadPath)
 		if err != nil {
 			return messages, err
 		}
@@ -103,24 +103,24 @@ func BootstrapCapnProto(buildToolConfig *RuntimeConfigBuildTool) ([]string, erro
 	}
 	messages = append(messages, fmt.Sprintf("%s has the correct SHA-256", downloadPath))
 	filterCapnProtoTarGz := filterCapnProtoTarGzFactory(capnProtoConfig.tarGzDir)
-	transformCapnProtoTarGz := transformCapnProtoTarGzFactory(capnProtoConfig.installDir, len(capnProtoConfig.tarGzDir))
+	transformCapnProtoTarGz := transformCapnProtoTarGzFactory(capnProtoConfig.toolchainDir, len(capnProtoConfig.tarGzDir))
 	err = extractTarGz(downloadPath, filterCapnProtoTarGz, transformCapnProtoTarGz)
 	if err != nil {
 		messages = append(messages, fmt.Sprintf("Failed to extract %s", downloadPath))
 		return messages, err
 	}
-	err = configureCapnProto(capnProtoConfig.installDir)
+	err = configureCapnProto(capnProtoConfig.toolchainDir)
 	if err != nil {
 		messages = append(messages, "Failed while running ./configure for Cap'n Proto")
 		return messages, err
 	}
-	err = makeCapnProto(capnProtoConfig.installDir)
+	err = makeCapnProto(capnProtoConfig.toolchainDir)
 	if err != nil {
 		messages = append(messages, "Failed while running make for Cap'n Proto")
 		return messages, err
 	}
-	capnProtoConfig.executable = filepath.Join(capnProtoConfig.installDir, "capnp")
-	err = updateCapnProtoToolchainToml(buildToolConfig.toolChainDir, capnProtoConfig.executable, capnProtoConfig.version)
+	capnProtoConfig.executable = filepath.Join(capnProtoConfig.toolchainDir, "capnp")
+	err = updateCapnProtoToolchainToml(buildToolConfig.Directories.ToolChainDir, capnProtoConfig.executable, capnProtoConfig.version)
 	return messages, err
 }
 
@@ -150,16 +150,16 @@ func filterCapnProtoTarGzFactory(tarGzDir string) fileFilter {
 }
 
 func getCapnProtoConfig(buildToolConfig *RuntimeConfigBuildTool) (*capnProtoConfig, error) {
-	if buildToolConfig.capnProto == nil {
-		return nil, fmt.Errorf("buildToolConfig.capnProto is nil")
+	if buildToolConfig.CapnProto == nil {
+		return nil, fmt.Errorf("buildToolConfig.CapnProto is nil")
 	}
 	// Version
-	version := buildToolConfig.capnProto.version
+	version := buildToolConfig.CapnProto.version
 	// Download File
 	filenameValues := capnProtoFilenameTemplateValues{
 		version,
 	}
-	filenameTemplate, err := template.New("filename").Parse(buildToolConfig.capnProto.filenameTemplate)
+	filenameTemplate, err := template.New("filename").Parse(buildToolConfig.CapnProto.filenameTemplate)
 	if err != nil {
 		return nil, err
 	}
@@ -174,7 +174,7 @@ func getCapnProtoConfig(buildToolConfig *RuntimeConfigBuildTool) (*capnProtoConf
 	downloadUrlValues := capnProtoDownloadUrlTemplateValues{
 		downloadFile,
 	}
-	downloadUrlTemplate, err := template.New("downloadUrl").Parse(buildToolConfig.capnProto.downloadUrlTemplate)
+	downloadUrlTemplate, err := template.New("downloadUrl").Parse(buildToolConfig.CapnProto.downloadUrlTemplate)
 	if err != nil {
 		return nil, err
 	}
@@ -184,7 +184,7 @@ func getCapnProtoConfig(buildToolConfig *RuntimeConfigBuildTool) (*capnProtoConf
 		return nil, err
 	}
 	downloadUrl := downloadUrlBuffer.String()
-	downloadFileInfo := buildToolConfig.capnProto.files[downloadFile]
+	downloadFileInfo := buildToolConfig.CapnProto.files[downloadFile]
 	if downloadFileInfo == (runtimeConfigFile{}) {
 		return nil, fmt.Errorf("File size and SHA-256 not found in downloads.toml for %s", downloadFile)
 	}
@@ -193,15 +193,15 @@ func getCapnProtoConfig(buildToolConfig *RuntimeConfigBuildTool) (*capnProtoConf
 	expectedSha256 := downloadFileInfo.sha256
 	// Install directory
 	capnProtoVersionedDir := "capnproto-" + version
-	installDir := filepath.Join(buildToolConfig.toolChainDir, capnProtoVersionedDir)
+	toolchainDir := filepath.Join(buildToolConfig.Directories.ToolChainDir, capnProtoVersionedDir)
 	// TarGz directory
 	tarGzDir := "capnproto-c++-" + version
 	// capnp executable
-	executable := buildToolConfig.capnProto.executable
+	executable := buildToolConfig.CapnProto.Executable
 	// Toolchain executable
-	toolchainExecutable := buildToolConfig.capnProto.toolchainExecutable
+	toolchainExecutable := buildToolConfig.CapnProto.toolchainExecutable
 	// Toolchain version
-	toolchainVersion := buildToolConfig.capnProto.toolchainVersion
+	toolchainVersion := buildToolConfig.CapnProto.toolchainVersion
 
 	capnProtoConfig := new(capnProtoConfig)
 	capnProtoConfig.downloadFile = downloadFile
@@ -209,8 +209,8 @@ func getCapnProtoConfig(buildToolConfig *RuntimeConfigBuildTool) (*capnProtoConf
 	capnProtoConfig.executable = executable
 	capnProtoConfig.expectedFileSize = expectedFileSize
 	capnProtoConfig.expectedSha256 = expectedSha256
-	capnProtoConfig.installDir = installDir
 	capnProtoConfig.tarGzDir = tarGzDir
+	capnProtoConfig.toolchainDir = toolchainDir
 	capnProtoConfig.toolchainExecutable = toolchainExecutable
 	capnProtoConfig.toolchainVersion = toolchainVersion
 	capnProtoConfig.version = version

@@ -28,8 +28,8 @@ type bpfAsmConfig struct {
 	bisonExecutable     string
 	executable          string
 	flexExecutable      string
-	installDir          string
 	makePath            string
+	toolchainDir        string
 	toolchainExecutable string
 	toolchainVersion    string
 	version             string
@@ -74,7 +74,7 @@ func BootstrapBpfAsm(buildToolConfig *RuntimeConfigBuildTool) ([]string, error) 
 	desiredPrefixes = append(desiredPrefixes, "linux-"+buildToolConfig.linux.version+"/tools/scripts/")
 	commonPrefix := "linux-" + buildToolConfig.linux.version
 	filterLinuxTarXz := filterLinuxTarXzFactory(desiredPrefixes)
-	transformLinuxTarXz := transformLinuxTarXzFactory(bpfAsmConfig.installDir, len(commonPrefix))
+	transformLinuxTarXz := transformLinuxTarXzFactory(bpfAsmConfig.toolchainDir, len(commonPrefix))
 	err = extractTarXz(downloadPath, filterLinuxTarXz, transformLinuxTarXz)
 	if err != nil {
 		messages = append(messages, fmt.Sprintf("Failed to extract %s", downloadPath))
@@ -85,44 +85,46 @@ func BootstrapBpfAsm(buildToolConfig *RuntimeConfigBuildTool) ([]string, error) 
 		return messages, err
 	}
 	bpfAsmConfig.executable = filepath.Join(bpfAsmConfig.makePath, "bpf_asm")
-	err = updateBpfAsmToolchainToml(buildToolConfig.toolChainDir, bpfAsmConfig.executable, bpfAsmConfig.version)
+	err = updateBpfAsmToolchainToml(buildToolConfig.Directories.ToolChainDir, bpfAsmConfig.executable, bpfAsmConfig.version)
 	return messages, err
 }
 
 func getBpfAsmConfig(buildToolConfig *RuntimeConfigBuildTool) (*bpfAsmConfig, error) {
-	if buildToolConfig.bison == nil {
-		return nil, fmt.Errorf("buildToolConfig.bison is nil")
-	} else if buildToolConfig.bpfAsm == nil {
-		return nil, fmt.Errorf("buildToolConfig.bpfAsm is nil")
-	} else if buildToolConfig.flex == nil {
-		return nil, fmt.Errorf("buildToolConfig.flex is nil")
+	if buildToolConfig.Bison == nil {
+		return nil, fmt.Errorf("buildToolConfig.Bison is nil")
+	} else if buildToolConfig.BpfAsm == nil {
+		return nil, fmt.Errorf("buildToolConfig.BpfAsm is nil")
+	} else if buildToolConfig.Directories == nil {
+		return nil, fmt.Errorf("buildToolConfig.Directories is nil")
+	} else if buildToolConfig.Flex == nil {
+		return nil, fmt.Errorf("buildToolConfig.Flex is nil")
 	} else if buildToolConfig.linux == nil {
 		return nil, fmt.Errorf("buildToolConfig.linux is nil")
 	}
 	// BpfAsm version
-	version := buildToolConfig.bpfAsm.version
+	version := buildToolConfig.BpfAsm.version
 	// Bison executable
-	bisonExecutable := buildToolConfig.bison.executable
+	bisonExecutable := buildToolConfig.Bison.Executable
 	// Flex executable
-	flexExecutable := buildToolConfig.flex.executable
+	flexExecutable := buildToolConfig.Flex.Executable
 	// Install directory
 	bpfAsmVersionedDir := "bpf_asm-" + version
-	installDir := filepath.Join(buildToolConfig.toolChainDir, bpfAsmVersionedDir)
+	toolchainDir := filepath.Join(buildToolConfig.Directories.ToolChainDir, bpfAsmVersionedDir)
 	// BpfAsm executable
-	executable := buildToolConfig.bpfAsm.executable
+	executable := buildToolConfig.BpfAsm.Executable
 	// BpfAsm make path
-	makePath := filepath.Join(installDir, "tools", "bpf")
+	makePath := filepath.Join(toolchainDir, "tools", "bpf")
 	// Toolchain executable
-	toolchainExecutable := buildToolConfig.bpfAsm.toolchainExecutable
+	toolchainExecutable := buildToolConfig.BpfAsm.toolchainExecutable
 	// Toolchain version
-	toolchainVersion := buildToolConfig.bpfAsm.toolchainVersion
+	toolchainVersion := buildToolConfig.BpfAsm.toolchainVersion
 
 	bpfAsmConfig := new(bpfAsmConfig)
 	bpfAsmConfig.bisonExecutable = bisonExecutable
 	bpfAsmConfig.executable = executable
 	bpfAsmConfig.flexExecutable = flexExecutable
-	bpfAsmConfig.installDir = installDir
 	bpfAsmConfig.makePath = makePath
+	bpfAsmConfig.toolchainDir = toolchainDir
 	bpfAsmConfig.toolchainExecutable = toolchainExecutable
 	bpfAsmConfig.toolchainVersion = toolchainVersion
 	bpfAsmConfig.version = version

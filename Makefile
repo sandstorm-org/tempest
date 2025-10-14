@@ -14,6 +14,7 @@ BUILDTOOL_PACKAGE := \
 		     internal/build-tool/downloads.go \
 		     internal/build-tool/flex.go \
 		     internal/build-tool/go-capnp.go \
+		     internal/build-tool/generate/capnp.go \
 		     internal/build-tool/linux.go \
 		     internal/build-tool/tinygo.go \
 		     internal/build-tool/toolchain.go \

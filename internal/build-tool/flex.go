@@ -33,7 +33,7 @@ type flexConfig struct {
 	executable          string
 	expectedFileSize    int64
 	expectedSha256      string
-	installDir          string
+	toolchainDir        string
 	toolchainExecutable string
 	toolchainVersion    string
 	version             string
@@ -77,11 +77,11 @@ func BootstrapFlex(buildToolConfig *RuntimeConfigBuildTool) ([]string, error) {
 			return messages, err
 		}
 	}
-	err = ensureDownloadDirExists(buildToolConfig.downloadDir)
+	err = ensureDownloadDirExists(buildToolConfig.Directories.DownloadDir)
 	if err != nil {
 		return messages, err
 	}
-	downloadPath := filepath.Join(buildToolConfig.downloadDir, flexConfig.downloadFile)
+	downloadPath := filepath.Join(buildToolConfig.Directories.DownloadDir, flexConfig.downloadFile)
 	exists, err = fileExistsAtPath(downloadPath)
 	if err != nil {
 		return messages, err
@@ -89,7 +89,7 @@ func BootstrapFlex(buildToolConfig *RuntimeConfigBuildTool) ([]string, error) {
 	if exists {
 		messages = append(messages, fmt.Sprintf("Skipping Flex download because %s exists", downloadPath))
 	} else {
-		err := downloadUrlToDir(flexConfig.downloadUrl, buildToolConfig.downloadDir, downloadPath)
+		err := downloadUrlToDir(flexConfig.downloadUrl, buildToolConfig.Directories.DownloadDir, downloadPath)
 		if err != nil {
 			return messages, err
 		}
@@ -104,22 +104,22 @@ func BootstrapFlex(buildToolConfig *RuntimeConfigBuildTool) ([]string, error) {
 	}
 	messages = append(messages, fmt.Sprintf("%s has the correct SHA-256", downloadPath))
 	filterFlexTarGz := filterFlexTarGzFactory(flexConfig.versionedDir)
-	transformFlexTarGz := transformFlexTarGzFactory(buildToolConfig.toolChainDir)
+	transformFlexTarGz := transformFlexTarGzFactory(buildToolConfig.Directories.ToolChainDir)
 	err = extractTarGz(downloadPath, filterFlexTarGz, transformFlexTarGz)
 	if err != nil {
 		messages = append(messages, fmt.Sprintf("Failed to extract %s", downloadPath))
 		return messages, err
 	}
-	err = configureFlex(flexConfig.installDir)
+	err = configureFlex(flexConfig.toolchainDir)
 	if err != nil {
 		return messages, err
 	}
-	err = makeFlex(flexConfig.installDir)
+	err = makeFlex(flexConfig.toolchainDir)
 	if err != nil {
 		return messages, err
 	}
-	flexConfig.executable = filepath.Join(flexConfig.installDir, "src", "flex")
-	err = updateFlexToolchainToml(buildToolConfig.toolChainDir, flexConfig.executable, flexConfig.version)
+	flexConfig.executable = filepath.Join(flexConfig.toolchainDir, "src", "flex")
+	err = updateFlexToolchainToml(buildToolConfig.Directories.ToolChainDir, flexConfig.executable, flexConfig.version)
 	return messages, err
 }
 
@@ -153,16 +153,19 @@ func filterFlexTarGzFactory(versionedDir string) fileFilter {
  * appropriate values.
  */
 func getFlexConfig(buildToolConfig *RuntimeConfigBuildTool) (*flexConfig, error) {
-	if buildToolConfig.flex == nil {
-		return nil, fmt.Errorf("buildToolConfig.flex is nil")
+	if buildToolConfig.Directories == nil {
+		return nil, fmt.Errorf("buildToolConfig.Directories is nil")
+	}
+	if buildToolConfig.Flex == nil {
+		return nil, fmt.Errorf("buildToolConfig.Flex is nil")
 	}
 	// Version
-	version := buildToolConfig.flex.version
+	version := buildToolConfig.Flex.version
 	// Download File
 	filenameValues := flexFilenameTemplateValues{
 		version,
 	}
-	filenameTemplate, err := template.New("filename").Parse(buildToolConfig.flex.filenameTemplate)
+	filenameTemplate, err := template.New("filename").Parse(buildToolConfig.Flex.filenameTemplate)
 	if err != nil {
 		return nil, err
 	}
@@ -178,7 +181,7 @@ func getFlexConfig(buildToolConfig *RuntimeConfigBuildTool) (*flexConfig, error)
 		downloadFile,
 		version,
 	}
-	downloadUrlTemplate, err := template.New("downloadUrl").Parse(buildToolConfig.flex.downloadUrlTemplate)
+	downloadUrlTemplate, err := template.New("downloadUrl").Parse(buildToolConfig.Flex.downloadUrlTemplate)
 	if err != nil {
 		return nil, err
 	}
@@ -188,7 +191,7 @@ func getFlexConfig(buildToolConfig *RuntimeConfigBuildTool) (*flexConfig, error)
 		return nil, err
 	}
 	downloadUrl := downloadUrlBuffer.String()
-	downloadFileInfo := buildToolConfig.flex.files[downloadFile]
+	downloadFileInfo := buildToolConfig.Flex.files[downloadFile]
 	if downloadFileInfo == (runtimeConfigFile{}) {
 		return nil, fmt.Errorf("File size and SHA-256 not found in downloads.toml for %s", downloadFile)
 	}
@@ -198,13 +201,13 @@ func getFlexConfig(buildToolConfig *RuntimeConfigBuildTool) (*flexConfig, error)
 	// Versioned directory
 	versionedDir := "flex-" + version
 	// Install directory
-	installDir := filepath.Join(buildToolConfig.toolChainDir, versionedDir)
+	toolchainDir := buildToolConfig.Flex.toolchainDir
 	// Flex executable
-	executable := buildToolConfig.flex.executable
+	executable := buildToolConfig.Flex.Executable
 	// Toolchain executable
-	toolchainExecutable := buildToolConfig.flex.toolchainExecutable
+	toolchainExecutable := buildToolConfig.Flex.toolchainExecutable
 	// Toolchain version
-	toolchainVersion := buildToolConfig.flex.toolchainVersion
+	toolchainVersion := buildToolConfig.Flex.toolchainVersion
 
 	flexConfig := new(flexConfig)
 	flexConfig.downloadFile = downloadFile
@@ -212,7 +215,7 @@ func getFlexConfig(buildToolConfig *RuntimeConfigBuildTool) (*flexConfig, error)
 	flexConfig.executable = executable
 	flexConfig.expectedFileSize = expectedFileSize
 	flexConfig.expectedSha256 = expectedSha256
-	flexConfig.installDir = installDir
+	flexConfig.toolchainDir = toolchainDir
 	flexConfig.toolchainExecutable = toolchainExecutable
 	flexConfig.toolchainVersion = toolchainVersion
 	flexConfig.version = version

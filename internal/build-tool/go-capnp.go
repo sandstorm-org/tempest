@@ -35,8 +35,8 @@ type goCapnpConfig struct {
 	expectedSha256      string
 	goExecutable        string
 	goPath              string
-	installDir          string
 	tarGzDir            string
+	toolchainDir        string
 	toolchainExecutable string
 	toolchainVersion    string
 	version             string
@@ -78,11 +78,11 @@ func BootstrapGoCapnp(buildToolConfig *RuntimeConfigBuildTool) ([]string, error)
 			return messages, err
 		}
 	}
-	err = ensureDownloadDirExists(buildToolConfig.downloadDir)
+	err = ensureDownloadDirExists(buildToolConfig.Directories.DownloadDir)
 	if err != nil {
 		return messages, err
 	}
-	downloadPath := filepath.Join(buildToolConfig.downloadDir, goCapnpConfig.downloadFile)
+	downloadPath := filepath.Join(buildToolConfig.Directories.DownloadDir, goCapnpConfig.downloadFile)
 	exists, err = fileExistsAtPath(downloadPath)
 	if err != nil {
 		return messages, err
@@ -90,7 +90,7 @@ func BootstrapGoCapnp(buildToolConfig *RuntimeConfigBuildTool) ([]string, error)
 	if exists {
 		messages = append(messages, fmt.Sprintf("Skipping go-capnp download because %s exists", downloadPath))
 	} else {
-		err := downloadUrlToDir(goCapnpConfig.downloadUrl, buildToolConfig.downloadDir, downloadPath)
+		err := downloadUrlToDir(goCapnpConfig.downloadUrl, buildToolConfig.Directories.DownloadDir, downloadPath)
 		if err != nil {
 			return messages, err
 		}
@@ -105,20 +105,20 @@ func BootstrapGoCapnp(buildToolConfig *RuntimeConfigBuildTool) ([]string, error)
 	}
 	messages = append(messages, fmt.Sprintf("%s has the correct SHA-256", downloadPath))
 	filterGoCapnpTarGz := filterGoCapnpTarGzFactory(goCapnpConfig.tarGzDir)
-	transformGoCapnpTarGz := transformGoCapnpTarGzFactory(goCapnpConfig.installDir, len(goCapnpConfig.tarGzDir))
+	transformGoCapnpTarGz := transformGoCapnpTarGzFactory(goCapnpConfig.toolchainDir, len(goCapnpConfig.tarGzDir))
 	err = extractTarGz(downloadPath, filterGoCapnpTarGz, transformGoCapnpTarGz)
 	if err != nil {
 		messages = append(messages, fmt.Sprintf("Failed to extract %s", downloadPath))
 		return messages, err
 	}
-	capnpcGoDir := filepath.Join(goCapnpConfig.installDir, "capnpc-go")
+	capnpcGoDir := filepath.Join(goCapnpConfig.toolchainDir, "capnpc-go")
 	err = buildCapnpcGo(goCapnpConfig, capnpcGoDir)
 	if err != nil {
 		messages = append(messages, "Failed while running go build for capnpc-go")
 		return messages, err
 	}
-	goCapnpConfig.executable = filepath.Join(goCapnpConfig.installDir, "capnpc-go", "capnpc-go")
-	err = updateGoCapnpToolchainToml(buildToolConfig.toolChainDir, goCapnpConfig.executable, goCapnpConfig.version)
+	goCapnpConfig.executable = filepath.Join(goCapnpConfig.toolchainDir, "capnpc-go", "capnpc-go")
+	err = updateGoCapnpToolchainToml(buildToolConfig.Directories.ToolChainDir, goCapnpConfig.executable, goCapnpConfig.version)
 	return messages, err
 }
 
@@ -157,16 +157,19 @@ func filterGoCapnpTarGzFactory(tarGzDir string) fileFilter {
 }
 
 func getGoCapnpConfig(buildToolConfig *RuntimeConfigBuildTool) (*goCapnpConfig, error) {
-	if buildToolConfig.goCapnp == nil {
-		return nil, fmt.Errorf("buildToolConfig.goCapnp is nil")
+	if buildToolConfig.Directories == nil {
+		return nil, fmt.Errorf("buildToolConfig.Directories is nil")
+	}
+	if buildToolConfig.GoCapnp == nil {
+		return nil, fmt.Errorf("buildToolConfig.GoCapnp is nil")
 	}
 	// Version
-	version := buildToolConfig.goCapnp.version
+	version := buildToolConfig.GoCapnp.version
 	// Download File
 	filenameValues := goCapnpFilenameTemplateValues{
 		version,
 	}
-	filenameTemplate, err := template.New("filename").Parse(buildToolConfig.goCapnp.filenameTemplate)
+	filenameTemplate, err := template.New("filename").Parse(buildToolConfig.GoCapnp.filenameTemplate)
 	if err != nil {
 		return nil, err
 	}
@@ -181,7 +184,7 @@ func getGoCapnpConfig(buildToolConfig *RuntimeConfigBuildTool) (*goCapnpConfig, 
 	downloadUrlValues := goCapnpDownloadUrlTemplateValues{
 		downloadFile,
 	}
-	downloadUrlTemplate, err := template.New("downloadUrl").Parse(buildToolConfig.goCapnp.downloadUrlTemplate)
+	downloadUrlTemplate, err := template.New("downloadUrl").Parse(buildToolConfig.GoCapnp.downloadUrlTemplate)
 	if err != nil {
 		return nil, err
 	}
@@ -191,7 +194,7 @@ func getGoCapnpConfig(buildToolConfig *RuntimeConfigBuildTool) (*goCapnpConfig, 
 		return nil, err
 	}
 	downloadUrl := downloadUrlBuffer.String()
-	downloadFileInfo := buildToolConfig.goCapnp.files[downloadFile]
+	downloadFileInfo := buildToolConfig.GoCapnp.files[downloadFile]
 	if downloadFileInfo == (runtimeConfigFile{}) {
 		return nil, fmt.Errorf("File size and SHA-256 not found in downloads.toml for %s", downloadFile)
 	}
@@ -200,15 +203,15 @@ func getGoCapnpConfig(buildToolConfig *RuntimeConfigBuildTool) (*goCapnpConfig, 
 	expectedSha256 := downloadFileInfo.sha256
 	// Install directory
 	goCapnpVersionedDir := "go-capnp-" + version
-	installDir := filepath.Join(buildToolConfig.toolChainDir, goCapnpVersionedDir)
+	toolchainDir := filepath.Join(buildToolConfig.Directories.ToolChainDir, goCapnpVersionedDir)
 	// TarGz directory
 	tarGzDir := "go-capnp-" + version
 	// capnp executable
-	executable := buildToolConfig.goCapnp.executable
+	executable := buildToolConfig.GoCapnp.Executable
 	// Toolchain executable
-	toolchainExecutable := buildToolConfig.goCapnp.toolchainExecutable
+	toolchainExecutable := buildToolConfig.GoCapnp.toolchainExecutable
 	// Toolchain version
-	toolchainVersion := buildToolConfig.goCapnp.toolchainVersion
+	toolchainVersion := buildToolConfig.GoCapnp.toolchainVersion
 
 	goCapnpConfig := new(goCapnpConfig)
 	goCapnpConfig.downloadFile = downloadFile
@@ -216,10 +219,10 @@ func getGoCapnpConfig(buildToolConfig *RuntimeConfigBuildTool) (*goCapnpConfig, 
 	goCapnpConfig.executable = executable
 	goCapnpConfig.expectedFileSize = expectedFileSize
 	goCapnpConfig.expectedSha256 = expectedSha256
-	goCapnpConfig.goExecutable = buildToolConfig.goExecutable
-	goCapnpConfig.goPath = buildToolConfig.goPath
-	goCapnpConfig.installDir = installDir
+	goCapnpConfig.goExecutable = buildToolConfig.Executables.goExecutable
+	goCapnpConfig.goPath = buildToolConfig.Executables.goPath
 	goCapnpConfig.tarGzDir = tarGzDir
+	goCapnpConfig.toolchainDir = toolchainDir
 	goCapnpConfig.toolchainExecutable = toolchainExecutable
 	goCapnpConfig.toolchainVersion = toolchainVersion
 	goCapnpConfig.version = version

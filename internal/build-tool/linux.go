@@ -49,11 +49,11 @@ func downloadAndVerifyLinuxTarball(buildToolConfig *RuntimeConfigBuildTool) (str
 		messages = append(messages, "Failed to get Linux configuration")
 		return "", messages, err
 	}
-	err = ensureDownloadDirExists(buildToolConfig.downloadDir)
+	err = ensureDownloadDirExists(buildToolConfig.Directories.DownloadDir)
 	if err != nil {
 		return "", messages, err
 	}
-	downloadPath := filepath.Join(buildToolConfig.downloadDir, linuxConfig.downloadFile)
+	downloadPath := filepath.Join(buildToolConfig.Directories.DownloadDir, linuxConfig.downloadFile)
 	exists, err := fileExistsAtPath(downloadPath)
 	if err != nil {
 		return "", messages, err
@@ -61,7 +61,7 @@ func downloadAndVerifyLinuxTarball(buildToolConfig *RuntimeConfigBuildTool) (str
 	if exists {
 		messages = append(messages, fmt.Sprintf("Skipping Linux download because %s exists", downloadPath))
 	} else {
-		err := downloadUrlToDir(linuxConfig.downloadUrl, buildToolConfig.downloadDir, downloadPath)
+		err := downloadUrlToDir(linuxConfig.downloadUrl, buildToolConfig.Directories.DownloadDir, downloadPath)
 		if err != nil {
 			return "", messages, err
 		}
@@ -105,10 +105,13 @@ func filterLinuxTarXzFactory(desiredPrefixes []string) fileFilter {
  * appropriate values.
  */
 func getLinuxConfig(buildToolConfig *RuntimeConfigBuildTool) (*linuxConfig, error) {
-	// Download File
+	if buildToolConfig.Directories == nil {
+		return nil, fmt.Errorf("buildToolConfig.Directories is nil")
+	}
 	if buildToolConfig.linux == nil {
 		return nil, fmt.Errorf("buildToolConfig.linux is nil")
 	}
+	// Download File
 	filenameValues := linuxFilenameTemplateValues{
 		buildToolConfig.linux.version,
 	}

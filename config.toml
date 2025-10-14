@@ -54,6 +54,12 @@ ToolChainDirTemplate = "toolchain"
 # Use Version to override the PreferredVersion in downloads.toml.
 #Version = "2.6.4"
 
+[build-tool.generate.capnp]
+CapnpDirs = [
+  "capnp",
+  "internal/capnp",
+]
+
 [build-tool.go]
 # Use Executable to specify the path to an existing Go executable.
 #Executable = "/usr/local/bin/go"
@@ -71,6 +77,14 @@ ToolChainDirTemplate = "toolchain"
 
 # Use Executable to specify the path to an existing Flex executable.
 #Executable = "/usr/local/bin/capnpc-go"
+
+# Use StdDirTemplate to specify the path to a go-capnp/std directory.
+# StdDirTemplate supports the GoCapnpVersion, Home and ToolChain template
+# variables.
+# {{ .GoCapnpVersion }} will expand to the current version of go-capnp.
+# {{ .Home }} will expand to the current user's home directory.
+# {{ .ToolChainDir }} will expand to the ToolChainDir directory.
+#StdDirTemplate = "{{ .ToolChainDir }}/go-capnp-{{ .GoCapnpVersion }}/std"
 
 # Use Version to override the PreferredVersion in downloads.toml.
 #Version = "3.1.0-alpha.1"

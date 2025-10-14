@@ -98,6 +98,9 @@ clean-tempest-sandbox-launcher:
 
 .PHONY: clean-toolchain
 clean-toolchain:
+	# Go get tends to create files and directories that have a write bit
+	# cleared, so rm -rf cannot do it's job.  Fix that with find.
+	find "$(TOOLCHAIN_DIR)" ! -perm -u=w -exec chmod 700 \{\} \;
 	rm -rf $(TOOLCHAIN_DIR)
 
 .PHONY: nuke

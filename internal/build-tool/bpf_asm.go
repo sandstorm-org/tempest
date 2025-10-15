@@ -52,7 +52,7 @@ func BootstrapBpfAsm(buildToolConfig *RuntimeConfigBuildTool) ([]string, error) 
 			messages = append(messages, fmt.Sprintf("Skipping download and installation of bpf_asm because %s (from config.toml) exists", bpfAsmConfig.executable))
 			return messages, nil
 		} else {
-			err = fmt.Errorf("User-specified bpf_asm executable %s does not exist.")
+			err = fmt.Errorf("User-specified bpf_asm executable %s does not exist.", bpfAsmConfig.executable)
 			return messages, err
 		}
 	}

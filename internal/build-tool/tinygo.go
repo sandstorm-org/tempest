@@ -69,7 +69,7 @@ func BootstrapTinyGo(buildToolConfig *RuntimeConfigBuildTool) ([]string, error) 
 			messages = append(messages, fmt.Sprintf("Skipping download and installation of TinyGo because %s (from config.toml) exists", tinyGoConfig.executable))
 			return messages, nil
 		} else {
-			err = fmt.Errorf("User-specified TinyGo executable %s does not exist.")
+			err = fmt.Errorf("User-specified TinyGo executable %s does not exist.", tinyGoConfig.executable)
 			return messages, err
 		}
 	}

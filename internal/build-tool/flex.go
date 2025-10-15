@@ -68,7 +68,7 @@ func BootstrapFlex(buildToolConfig *RuntimeConfigBuildTool) ([]string, error) {
 			messages = append(messages, fmt.Sprintf("Skipping download and installation of Flex because %s (from config.toml) exists", flexConfig.executable))
 			return messages, nil
 		} else {
-			err = fmt.Errorf("User-specified Flex executable %s does not exist.")
+			err = fmt.Errorf("User-specified Flex executable %s does not exist.", flexConfig.executable)
 			return messages, err
 		}
 	}

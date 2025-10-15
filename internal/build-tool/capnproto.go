@@ -68,7 +68,7 @@ func BootstrapCapnProto(buildToolConfig *RuntimeConfigBuildTool) ([]string, erro
 			messages = append(messages, fmt.Sprintf("Skipping download and installation of Cap'n Proto because %s (from config.toml) exists", capnProtoConfig.executable))
 			return messages, nil 
 		} else {
-			err = fmt.Errorf("User-specified Cap'n Proto executable %s does not exist.")
+			err = fmt.Errorf("User-specified Cap'n Proto executable %s does not exist.", capnProtoConfig.executable)
 			return messages, err
 		}
 	}

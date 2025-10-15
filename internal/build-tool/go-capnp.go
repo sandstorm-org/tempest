@@ -70,7 +70,7 @@ func BootstrapGoCapnp(buildToolConfig *RuntimeConfigBuildTool) ([]string, error)
 			messages = append(messages, fmt.Sprintf("Skipping download and installation of go-capnp because %s (from config.toml) exists", goCapnpConfig.executable))
 			return messages, nil
 		} else {
-			err = fmt.Errorf("User-specified go-capnp executable %s does not exist.")
+			err = fmt.Errorf("User-specified go-capnp executable %s does not exist.", goCapnpConfig.executable)
 			return messages, err
 		}
 	}

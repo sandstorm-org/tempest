@@ -67,7 +67,7 @@ func BootstrapBison(buildToolConfig *RuntimeConfigBuildTool) ([]string, error) {
 			messages = append(messages, fmt.Sprintf("Skipping download and installation of Bison because %s (from config.toml) exists", bisonConfig.executable))
 			return messages, nil
 		} else {
-			err = fmt.Errorf("User-specified Bison executable %s does not exist.")
+			err = fmt.Errorf("User-specified Bison executable %s does not exist.", bisonConfig.executable)
 			return messages, err
 		}
 	}

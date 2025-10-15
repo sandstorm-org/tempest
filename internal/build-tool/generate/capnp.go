@@ -47,7 +47,11 @@ func GenerateCapnp(buildToolConfig *buildtool.RuntimeConfigBuildTool) ([]string,
 			messages = append(messages, "Failed to create CodeGeneratorRequest for file "+capnpFilepath)
 			return messages, err
 		}
-		writeGoCapnpFileWithCGR(config, capnpFilepath, cgr)
+		err = writeGoCapnpFileWithCGR(config, capnpFilepath, cgr)
+		if err != nil {
+			messages = append(messages, "Filed to compile CodeGeneratorRequest for file "+capnpFilepath)
+			return messages, err
+		}
 	}
 	return messages, nil
 }

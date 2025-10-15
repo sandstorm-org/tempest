@@ -52,18 +52,18 @@ type ConfigTomlBuildTool struct {
 	DownloadsFile        string
 	ToolChainDirTemplate string
 
-	Bison     ConfigTomlBison     `toml:"bison"`
-	BpfAsm    ConfigTomlBpfAsm    `toml:"bpf_asm"`
-	CapnProto ConfigTomlCapnProto `toml:"capnproto"`
-	Flex      ConfigTomlFlex      `toml:"flex"`
-	Generate  ConfigTomlGenerate  `toml:"generate"`
-	Go        ConfigTomlGo        `toml:"go"`
-	GoCapnp   ConfigTomlGoCapnp   `toml:"go-capnp"`
-	Linux     ConfigTomlLinux     `toml:"linux"`
-	TinyGo    ConfigTomlTinyGo    `toml:"tinygo"`
+	Bison     ConfigTomlTool     `toml:"bison"`
+	BpfAsm    ConfigTomlBpfAsm   `toml:"bpf_asm"`
+	CapnProto ConfigTomlTool     `toml:"capnproto"`
+	Flex      ConfigTomlTool     `toml:"flex"`
+	Generate  ConfigTomlGenerate `toml:"generate"`
+	Go        ConfigTomlGo       `toml:"go"`
+	GoCapnp   ConfigTomlTool     `toml:"go-capnp"`
+	Linux     ConfigTomlLinux    `toml:"linux"`
+	TinyGo    ConfigTomlTool     `toml:"tinygo"`
 }
 
-type ConfigTomlBison struct {
+type ConfigTomlTool struct {
 	DownloadUrl string
 	Executable  string
 	Version     string
@@ -72,18 +72,6 @@ type ConfigTomlBison struct {
 type ConfigTomlBpfAsm struct {
 	Executable string
 	GoPath     string
-}
-
-type ConfigTomlCapnProto struct {
-	DownloadUrl string
-	Executable  string
-	Version     string
-}
-
-type ConfigTomlFlex struct {
-	DownloadUrl string
-	Executable  string
-	Version     string
 }
 
 type ConfigTomlGenerate struct {
@@ -100,20 +88,8 @@ type ConfigTomlGo struct {
 	GoPathTemplate string
 }
 
-type ConfigTomlGoCapnp struct {
-	DownloadUrl string
-	Executable  string
-	Version     string
-}
-
 type ConfigTomlLinux struct {
 	DownloadUrl string
-	Version     string
-}
-
-type ConfigTomlTinyGo struct {
-	DownloadUrl string
-	Executable  string
 	Version     string
 }
 
@@ -144,32 +120,39 @@ type RuntimeConfigBuildTool struct {
 	Directories *runtimeConfigDirectories
 	Executables *runtimeConfigExecutables
 
-	Bison     *runtimeConfigBison
+	Bison     *runtimeConfigTool
 	BpfAsm    *runtimeConfigBpfAsm
-	CapnProto *runtimeConfigCapnProto
-	Flex      *runtimeConfigFlex
+	CapnProto *runtimeConfigTool
+	Flex      *runtimeConfigTool
 	Generate  *runtimeConfigGenerate
 	GoCapnp   *runtimeConfigGoCapnp
 	linux     *runtimeConfigLinux
-	TinyGo    *runtimeConfigTinyGo
+	TinyGo    *runtimeConfigTool
 }
 
-type runtimeConfigBison struct {
-	downloadUrlTemplate string
-	Executable          string
-	filenameTemplate    string
-	files               map[string]runtimeConfigFile
+type runtimeConfigTool struct {
+	downloadUrlTemplate string // from config.toml or downloads.toml
+	Executable          string // from config.toml or empty
+	filenameTemplate    string // from downloads.toml
+	files               map[string]runtimeConfigFile // from downloads.toml
+	Name                string // Tool name, suitable for display, e.g., "Bison"
+	Prefix              string // Tool prefix, e.g., "bison-"
+	// NB!
+	// toolchainDir is the directory that might exist in toolchain, and is
+	// formed by combining the tool's prefix with the desired version.
+	// This means that it may not have the same version as
+	// toolchainVersion.
 	toolchainDir        string
-	toolchainExecutable string
-	toolchainVersion    string
-	version             string
-	versionedDir        string
+	ToolChainExecutable string // the Bison executable that might exist in /toolchain
+	toolchainVersion    string // the version of Bison that might exist in /toolchain
+	version             string // from config.toml or from downloads.toml
+	versionedDir        string // e.g., "bison-3.8.2"
 }
 
 type runtimeConfigBpfAsm struct {
 	Executable          string
 	toolchainDir        string
-	toolchainExecutable string
+	ToolChainExecutable string
 	toolchainVersion    string
 	version             string
 }
@@ -179,7 +162,7 @@ type runtimeConfigCapnProto struct {
 	Executable          string
 	filenameTemplate    string
 	files               map[string]runtimeConfigFile
-	toolchainExecutable string
+	ToolChainExecutable string
 	toolchainVersion    string
 	version             string
 }
@@ -201,17 +184,6 @@ type runtimeConfigFile struct {
 	size   int64
 }
 
-type runtimeConfigFlex struct {
-	downloadUrlTemplate string
-	Executable          string
-	filenameTemplate    string
-	files               map[string]runtimeConfigFile
-	toolchainDir        string
-	toolchainExecutable string
-	toolchainVersion    string
-	version             string
-}
-
 type runtimeConfigGenerate struct {
 	Capnp *runtimeConfigGenerateCapnp
 }
@@ -227,7 +199,7 @@ type runtimeConfigGoCapnp struct {
 	filenameTemplate    string
 	files               map[string]runtimeConfigFile
 	toolchainDir        string
-	toolchainExecutable string
+	ToolChainExecutable string
 	toolchainVersion    string
 	version             string
 }
@@ -240,16 +212,6 @@ type runtimeConfigLinux struct {
 	version             string
 }
 
-type runtimeConfigTinyGo struct {
-	downloadUrlTemplate string
-	Executable          string
-	filenameTemplate    string
-	files               map[string]runtimeConfigFile
-	toolchainExecutable string
-	toolchainVersion    string
-	version             string
-}
-
 func BuildConfiguration(configFile *ConfigTomlTopLevel, downloadsFile *DownloadsTomlTopLevel) (*RuntimeConfigBuildTool, error) {
 	config := new(RuntimeConfigBuildTool)
 	var err error
@@ -257,16 +219,28 @@ func BuildConfiguration(configFile *ConfigTomlTopLevel, downloadsFile *Downloads
 	config.downloadUserAgent = configFile.BuildTool.DownloadUserAgent
 	// Directories
 	config.Directories = new(runtimeConfigDirectories)
-	config.Directories.BuildDir, err = buildDirWithHomeTemplate("BuildDir", configFile.BuildTool.BuildDirTemplate)
+	buildDir, err := buildDirWithHomeTemplate("BuildDir", configFile.BuildTool.BuildDirTemplate)
 	if err != nil {
 		return nil, err
 	}
-	config.Directories.DownloadDir, err = buildDirWithHomeTemplate("DownloadDir", configFile.BuildTool.DownloadDirTemplate)
+	config.Directories.BuildDir, err = filepath.Abs(buildDir)
+	if err != nil {
+		return nil, err
+	}
+	downloadDir, err := buildDirWithHomeTemplate("DownloadDir", configFile.BuildTool.DownloadDirTemplate)
+	if err != nil {
+		return nil, err
+	}
+	config.Directories.DownloadDir, err = filepath.Abs(downloadDir)
 	if err != nil {
 		return nil, err
 	}
 	config.Directories.IncrementalDir = filepath.Join(config.Directories.BuildDir, "incremental")
-	config.Directories.ToolChainDir, err = buildDirWithHomeTemplate("ToolChainDir", configFile.BuildTool.ToolChainDirTemplate)
+	toolChainDir, err := buildDirWithHomeTemplate("ToolChainDir", configFile.BuildTool.ToolChainDirTemplate)
+	if err != nil {
+		return nil, err
+	}
+	config.Directories.ToolChainDir, err = filepath.Abs(toolChainDir)
 	if err != nil {
 		return nil, err
 	}
@@ -284,8 +258,10 @@ func BuildConfiguration(configFile *ConfigTomlTopLevel, downloadsFile *Downloads
 		return nil, err
 	}
 	// Bison
-	config.Bison = new(runtimeConfigBison)
-	err = populateBisonRuntimeConfig(config.Bison, config.Directories, &configFile.BuildTool.Bison, &downloadsFile.Bison, toolchainToml)
+	config.Bison = new(runtimeConfigTool)
+	config.Bison.Name = "Bison"
+	config.Bison.Prefix = "bison-"
+	err = populateToolRuntimeConfig(config.Bison, config.Directories, &configFile.BuildTool.Bison, &downloadsFile.Bison, toolchainToml.Bison)
 	if err != nil {
 		return nil, err
 	}
@@ -296,14 +272,18 @@ func BuildConfiguration(configFile *ConfigTomlTopLevel, downloadsFile *Downloads
 		return nil, err
 	}
 	// Cap'n Proto
-	config.CapnProto = new(runtimeConfigCapnProto)
-	err = populateCapnProtoRuntimeConfig(config.CapnProto, &configFile.BuildTool.CapnProto, &downloadsFile.CapnProto, toolchainToml)
+	config.CapnProto = new(runtimeConfigTool)
+	config.CapnProto.Name = "Cap'n Proto"
+	config.CapnProto.Prefix = "capnp-"
+	err = populateToolRuntimeConfig(config.CapnProto, config.Directories, &configFile.BuildTool.CapnProto, &downloadsFile.CapnProto, toolchainToml.CapnProto)
 	if err != nil {
 		return nil, err
 	}
 	// Flex
-	config.Flex = new(runtimeConfigFlex)
-	err = populateFlexRuntimeConfig(config.Flex, config.Directories, &configFile.BuildTool.Flex, &downloadsFile.Flex, toolchainToml)
+	config.Flex = new(runtimeConfigTool)
+	config.Flex.Name = "Flex"
+	config.Flex.Prefix = "flex-"
+	err = populateToolRuntimeConfig(config.Flex, config.Directories, &configFile.BuildTool.Flex, &downloadsFile.Flex, toolchainToml.Flex)
 	if err != nil {
 		return nil, err
 	}
@@ -330,8 +310,10 @@ func BuildConfiguration(configFile *ConfigTomlTopLevel, downloadsFile *Downloads
 		return nil, err
 	}
 	// TinyGo
-	config.TinyGo = new(runtimeConfigTinyGo)
-	err = populateTinyGoRuntimeConfig(config.TinyGo, &configFile.BuildTool.TinyGo, &downloadsFile.TinyGo, toolchainToml)
+	config.TinyGo = new(runtimeConfigTool)
+	config.TinyGo.Name = "TinyGo"
+	config.TinyGo.Prefix = "tinygo-"
+	err = populateToolRuntimeConfig(config.TinyGo, config.Directories, &configFile.BuildTool.TinyGo, &downloadsFile.TinyGo, toolchainToml.TinyGo)
 	if err != nil {
 		return nil, err
 	}
@@ -432,44 +414,32 @@ func getGoPath(config *RuntimeConfigBuildTool, configFile *ConfigTomlTopLevel) (
 	return goPath, nil
 }
 
-func populateBisonRuntimeConfig(runtimeConfig *runtimeConfigBison, directories *runtimeConfigDirectories, configFile *ConfigTomlBison, downloadsFile *DownloadsTomlBison, toolchainToml *ToolchainTomlTopLevel) error {
-	if configFile.DownloadUrl != "" {
-		runtimeConfig.downloadUrlTemplate = configFile.DownloadUrl
-	} else {
-		runtimeConfig.downloadUrlTemplate = downloadsFile.DownloadUrlTemplate
-	}
-	if configFile.Executable != "" {
-		runtimeConfig.Executable = configFile.Executable
-	} else if toolchainToml.Bison != nil && toolchainToml.Bison.Executable != "" {
-		absExecutable, err := filepath.Abs(toolchainToml.Bison.Executable)
-		if err != nil {
-			return err
-		}
-		runtimeConfig.Executable = absExecutable
-	} else {
-		runtimeConfig.Executable = ""
-	}
-	runtimeConfig.filenameTemplate = downloadsFile.FilenameTemplate
-	prefix := "bison-"
-	if toolchainToml.Bison == nil {
-		runtimeConfig.toolchainDir = ""
-		runtimeConfig.toolchainExecutable = ""
-		runtimeConfig.toolchainVersion = ""
-	} else {
-		runtimeConfig.toolchainVersion = toolchainToml.Bison.Version
-		versionedDir := prefix + runtimeConfig.toolchainVersion
-		runtimeConfig.toolchainDir = filepath.Join(directories.ToolChainDir, versionedDir)
-		runtimeConfig.toolchainExecutable = toolchainToml.Bison.Executable
-	}
+func populateToolRuntimeConfig(runtimeConfig *runtimeConfigTool, directories *runtimeConfigDirectories, configFile *ConfigTomlTool, downloadsFile *DownloadsTomlTool, toolChainTool *ToolchainTomlTool) error {
+	// First, get the version.
 	if configFile.Version != "" {
 		runtimeConfig.version = configFile.Version
 	} else {
 		runtimeConfig.version = downloadsFile.PreferredVersion
 	}
 	if runtimeConfig.version == "" {
-		return fmt.Errorf("Bison has no configured version")
+		return fmt.Errorf("%s has no configured version", runtimeConfig.Name)
 	}
-	runtimeConfig.versionedDir = prefix + runtimeConfig.version
+	// With that, we can figured out the versionedDir
+	runtimeConfig.versionedDir = runtimeConfig.Prefix + runtimeConfig.version
+
+	if configFile.DownloadUrl != "" {
+		runtimeConfig.downloadUrlTemplate = configFile.DownloadUrl
+	} else {
+		runtimeConfig.downloadUrlTemplate = downloadsFile.DownloadUrlTemplate
+	}
+
+	if configFile.Executable != "" {
+		runtimeConfig.Executable = configFile.Executable
+	} else {
+		// There is no executable
+		runtimeConfig.Executable = ""
+	}
+	runtimeConfig.filenameTemplate = downloadsFile.FilenameTemplate
 	runtimeConfig.files = make(map[string]runtimeConfigFile)
 	for fileName, fileStruct := range downloadsFile.Files {
 		runtimeConfig.files[fileName] = runtimeConfigFile{
@@ -477,10 +447,19 @@ func populateBisonRuntimeConfig(runtimeConfig *runtimeConfigBison, directories *
 			fileStruct.Size,
 		}
 	}
+	runtimeConfig.toolchainDir = filepath.Join(directories.ToolChainDir, runtimeConfig.versionedDir)
+	if toolChainTool == nil {
+		runtimeConfig.ToolChainExecutable = ""
+		runtimeConfig.toolchainVersion = ""
+	} else {
+		runtimeConfig.toolchainVersion = toolChainTool.Version
+		runtimeConfig.ToolChainExecutable = filepath.Join(directories.ToolChainDir, toolChainTool.Executable)
+	}
+
 	return nil
 }
 
-func populateBpfAsmRuntimeConfig(runtimeConfig *runtimeConfigBpfAsm, directories *runtimeConfigDirectories, configFile *ConfigTomlBpfAsm, toolchainToml *ToolchainTomlTopLevel, configFileLinux *ConfigTomlLinux, downloadsFileLinux *DownloadsTomlLinux) error {
+func populateBpfAsmRuntimeConfig(runtimeConfig *runtimeConfigBpfAsm, directories *runtimeConfigDirectories, configFile *ConfigTomlBpfAsm, toolchainToml *ToolchainTomlTopLevel, configFileLinux *ConfigTomlLinux, downloadsFileLinux *DownloadsTomlTool) error {
 	// Version
 	if configFileLinux.Version != "" {
 		runtimeConfig.version = configFileLinux.Version
@@ -494,67 +473,20 @@ func populateBpfAsmRuntimeConfig(runtimeConfig *runtimeConfigBpfAsm, directories
 	if configFile.Executable != "" {
 		runtimeConfig.Executable = configFile.Executable
 	} else if toolchainToml.BpfAsm != nil && toolchainToml.BpfAsm.Executable != "" && toolchainToml.BpfAsm.Version == runtimeConfig.version {
-		absExecutable, err := filepath.Abs(toolchainToml.BpfAsm.Executable)
-		if err != nil {
-			return err
-		}
-		runtimeConfig.Executable = absExecutable
+		runtimeConfig.Executable = filepath.Join(directories.ToolChainDir, toolchainToml.BpfAsm.Executable)
 	} else {
 		runtimeConfig.Executable = ""
 	}
 	prefix := "bpf_asm-"
 	if toolchainToml.BpfAsm == nil {
 		runtimeConfig.toolchainDir = ""
-		runtimeConfig.toolchainExecutable = ""
+		runtimeConfig.ToolChainExecutable = ""
 		runtimeConfig.toolchainVersion = ""
 	} else {
 		runtimeConfig.toolchainVersion = toolchainToml.BpfAsm.Version
 		versionedDir := prefix + runtimeConfig.toolchainVersion
 		runtimeConfig.toolchainDir = filepath.Join(directories.ToolChainDir, versionedDir)
-		runtimeConfig.toolchainExecutable = toolchainToml.BpfAsm.Executable
-	}
-	return nil
-}
-
-func populateCapnProtoRuntimeConfig(runtimeConfig *runtimeConfigCapnProto, configFile *ConfigTomlCapnProto, downloadsFile *DownloadsTomlCapnProto, toolchainToml *ToolchainTomlTopLevel) error {
-	if configFile.DownloadUrl != "" {
-		runtimeConfig.downloadUrlTemplate = configFile.DownloadUrl
-	} else {
-		runtimeConfig.downloadUrlTemplate = downloadsFile.DownloadUrlTemplate
-	}
-	if configFile.Executable != "" {
-		runtimeConfig.Executable = configFile.Executable
-	} else if toolchainToml.CapnProto != nil && toolchainToml.CapnProto.Executable != "" {
-		absExecutable, err := filepath.Abs(toolchainToml.CapnProto.Executable)
-		if err != nil {
-			return err
-		}
-		runtimeConfig.Executable = absExecutable
-	} else {
-		runtimeConfig.Executable = ""
-	}
-	runtimeConfig.filenameTemplate = downloadsFile.FilenameTemplate
-	if toolchainToml.CapnProto == nil {
-		runtimeConfig.toolchainExecutable = ""
-		runtimeConfig.toolchainVersion = ""
-	} else {
-		runtimeConfig.toolchainExecutable = toolchainToml.CapnProto.Executable
-		runtimeConfig.toolchainVersion = toolchainToml.CapnProto.Version
-	}
-	if configFile.Version != "" {
-		runtimeConfig.version = configFile.Version
-	} else {
-		runtimeConfig.version = downloadsFile.PreferredVersion
-	}
-	if runtimeConfig.version == "" {
-		return fmt.Errorf("Cap'n Proto has no configured version")
-	}
-	runtimeConfig.files = make(map[string]runtimeConfigFile)
-	for fileName, fileStruct := range downloadsFile.Files {
-		runtimeConfig.files[fileName] = runtimeConfigFile{
-			fileStruct.Sha256,
-			fileStruct.Size,
-		}
+		runtimeConfig.ToolChainExecutable = filepath.Join(directories.ToolChainDir, toolchainToml.BpfAsm.Executable)
 	}
 	return nil
 }
@@ -566,63 +498,14 @@ func populateExecutablesRuntimeConfig(config *RuntimeConfigBuildTool, configFile
 		if err != nil {
 			return err
 		}
-	} else if toolchainToml.Go.Executable != "" {
-		config.Executables.goExecutable, err = filepath.Abs(toolchainToml.Go.Executable)
-		if err != nil {
-			return err
-		}
+	} else if toolchainToml.Go != nil && toolchainToml.Go.Executable != "" {
+		config.Executables.goExecutable = filepath.Join(config.Directories.ToolChainDir, toolchainToml.Go.Executable)
 	}
 	goPath, err := getGoPath(config, configFile)
 	if err != nil {
 		return err
 	}
 	config.Executables.goPath = goPath
-	return nil
-}
-
-func populateFlexRuntimeConfig(runtimeConfig *runtimeConfigFlex, directories *runtimeConfigDirectories, configFile *ConfigTomlFlex, downloadsFile *DownloadsTomlFlex, toolchainToml *ToolchainTomlTopLevel) error {
-	if configFile.DownloadUrl != "" {
-		runtimeConfig.downloadUrlTemplate = configFile.DownloadUrl
-	} else {
-		runtimeConfig.downloadUrlTemplate = downloadsFile.DownloadUrlTemplate
-	}
-	if configFile.Executable != "" {
-		runtimeConfig.Executable = configFile.Executable
-	} else if toolchainToml.Flex != nil && toolchainToml.Flex.Executable != "" {
-		absExecutable, err := filepath.Abs(toolchainToml.Flex.Executable)
-		if err != nil {
-			return err
-		}
-		runtimeConfig.Executable = absExecutable
-	} else {
-		runtimeConfig.Executable = ""
-	}
-	runtimeConfig.filenameTemplate = downloadsFile.FilenameTemplate
-	if toolchainToml.Flex == nil {
-		runtimeConfig.toolchainDir = ""
-		runtimeConfig.toolchainExecutable = ""
-		runtimeConfig.toolchainVersion = ""
-	} else {
-		runtimeConfig.toolchainDir = filepath.Join(directories.ToolChainDir, "flex-"+toolchainToml.Flex.Version)
-		runtimeConfig.toolchainExecutable = toolchainToml.Flex.Executable
-		runtimeConfig.toolchainVersion = toolchainToml.Flex.Version
-	}
-	if configFile.Version != "" {
-		runtimeConfig.version = configFile.Version
-		runtimeConfig.version = configFile.Version
-	} else {
-		runtimeConfig.version = downloadsFile.PreferredVersion
-	}
-	if runtimeConfig.version == "" {
-		return fmt.Errorf("Flex has no configured version")
-	}
-	runtimeConfig.files = make(map[string]runtimeConfigFile)
-	for fileName, fileStruct := range downloadsFile.Files {
-		runtimeConfig.files[fileName] = runtimeConfigFile{
-			fileStruct.Sha256,
-			fileStruct.Size,
-		}
-	}
 	return nil
 }
 
@@ -648,12 +531,11 @@ func populateGenerateCapnpRuntimeConfig(runtimeConfig *runtimeConfigGenerateCapn
 	if err != nil {
 		return nil
 	}
-	log.Printf("stdDir: %s", stdDir)
 	runtimeConfig.StdDir = stdDir
 	return nil
 }
 
-func populateBuildGoCapnpRuntimeConfig(runtimeConfig *runtimeConfigGoCapnp, directories *runtimeConfigDirectories, configFile *ConfigTomlGoCapnp, downloadsFile *DownloadsTomlGoCapnp, toolchainToml *ToolchainTomlTopLevel) error {
+func populateBuildGoCapnpRuntimeConfig(runtimeConfig *runtimeConfigGoCapnp, directories *runtimeConfigDirectories, configFile *ConfigTomlTool, downloadsFile *DownloadsTomlTool, toolchainToml *ToolchainTomlTopLevel) error {
 	if configFile.DownloadUrl != "" {
 		runtimeConfig.downloadUrlTemplate = configFile.DownloadUrl
 	} else {
@@ -662,22 +544,18 @@ func populateBuildGoCapnpRuntimeConfig(runtimeConfig *runtimeConfigGoCapnp, dire
 	if configFile.Executable != "" {
 		runtimeConfig.Executable = configFile.Executable
 	} else if toolchainToml.GoCapnp != nil && toolchainToml.GoCapnp.Executable != "" {
-		absExecutable, err := filepath.Abs(toolchainToml.GoCapnp.Executable)
-		if err != nil {
-			return err
-		}
-		runtimeConfig.Executable = absExecutable
+		runtimeConfig.Executable = filepath.Join(directories.ToolChainDir, toolchainToml.GoCapnp.Executable)
 	} else {
 		runtimeConfig.Executable = ""
 	}
 	runtimeConfig.filenameTemplate = downloadsFile.FilenameTemplate
 	if toolchainToml.GoCapnp == nil {
 		runtimeConfig.toolchainDir = ""
-		runtimeConfig.toolchainExecutable = ""
+		runtimeConfig.ToolChainExecutable = ""
 		runtimeConfig.toolchainVersion = ""
 	} else {
 		runtimeConfig.toolchainDir = filepath.Join(directories.ToolChainDir, "capnproto-"+toolchainToml.GoCapnp.Version)
-		runtimeConfig.toolchainExecutable = toolchainToml.GoCapnp.Executable
+		runtimeConfig.ToolChainExecutable = filepath.Join(directories.ToolChainDir, toolchainToml.GoCapnp.Executable)
 		runtimeConfig.toolchainVersion = toolchainToml.GoCapnp.Version
 	}
 	if configFile.Version != "" {
@@ -698,7 +576,7 @@ func populateBuildGoCapnpRuntimeConfig(runtimeConfig *runtimeConfigGoCapnp, dire
 	return nil
 }
 
-func populateLinuxRuntimeConfig(runtimeConfig *runtimeConfigLinux, configFile *ConfigTomlLinux, downloadsFile *DownloadsTomlLinux) error {
+func populateLinuxRuntimeConfig(runtimeConfig *runtimeConfigLinux, configFile *ConfigTomlLinux, downloadsFile *DownloadsTomlTool) error {
 	if configFile.DownloadUrl != "" {
 		runtimeConfig.downloadUrlTemplate = configFile.DownloadUrl
 	} else {
@@ -712,49 +590,6 @@ func populateLinuxRuntimeConfig(runtimeConfig *runtimeConfigLinux, configFile *C
 	}
 	if runtimeConfig.version == "" {
 		return fmt.Errorf("Linux has no configured version")
-	}
-	runtimeConfig.files = make(map[string]runtimeConfigFile)
-	for fileName, fileStruct := range downloadsFile.Files {
-		runtimeConfig.files[fileName] = runtimeConfigFile{
-			fileStruct.Sha256,
-			fileStruct.Size,
-		}
-	}
-	return nil
-}
-
-func populateTinyGoRuntimeConfig(runtimeConfig *runtimeConfigTinyGo, configFile *ConfigTomlTinyGo, downloadsFile *DownloadsTomlTinyGo, toolchainToml *ToolchainTomlTopLevel) error {
-	if configFile.DownloadUrl != "" {
-		runtimeConfig.downloadUrlTemplate = configFile.DownloadUrl
-	} else {
-		runtimeConfig.downloadUrlTemplate = downloadsFile.DownloadUrlTemplate
-	}
-	if configFile.Executable != "" {
-		runtimeConfig.Executable = configFile.Executable
-	} else if toolchainToml.TinyGo != nil && toolchainToml.TinyGo.Executable != "" {
-		absExecutable, err := filepath.Abs(toolchainToml.TinyGo.Executable)
-		if err != nil {
-			return err
-		}
-		runtimeConfig.Executable = absExecutable
-	} else {
-		runtimeConfig.Executable = ""
-	}
-	runtimeConfig.filenameTemplate = downloadsFile.FilenameTemplate
-	if toolchainToml.TinyGo == nil {
-		runtimeConfig.toolchainExecutable = ""
-		runtimeConfig.toolchainVersion = ""
-	} else {
-		runtimeConfig.toolchainExecutable = toolchainToml.TinyGo.Executable
-		runtimeConfig.toolchainVersion = toolchainToml.TinyGo.Version
-	}
-	if configFile.Version != "" {
-		runtimeConfig.version = configFile.Version
-	} else {
-		runtimeConfig.version = downloadsFile.PreferredVersion
-	}
-	if runtimeConfig.version == "" {
-		return fmt.Errorf("TinyGo has no configured version")
 	}
 	runtimeConfig.files = make(map[string]runtimeConfigFile)
 	for fileName, fileStruct := range downloadsFile.Files {

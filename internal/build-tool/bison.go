@@ -57,23 +57,33 @@ func BootstrapBison(buildToolConfig *RuntimeConfigBuildTool) ([]string, error) {
 		messages = append(messages, "Failed to get Bison configuration")
 		return messages, err
 	}
-	exists, err := fileExistsAtPath(bisonConfig.executable)
-	if err != nil {
-		log.Printf("fileExistsAtPath err\n")
-		return messages, err
-	}
-	if bisonConfig.executable == bisonConfig.toolchainExecutable {
-		if bisonConfig.version == bisonConfig.toolchainVersion && exists {
-			messages = append(messages, fmt.Sprintf("Skipping download and installation of Bison because %s exists", bisonConfig.executable))
+	if bisonConfig.executable != "" {
+		executableExists, err := fileExistsAtPath(bisonConfig.executable)
+		if err != nil {
+			log.Printf("fileExistsAtPath err\n")
 			return messages, err
 		}
-	} else if bisonConfig.executable != "" {
-		if exists {
-			messages = append(messages, fmt.Sprintf("Skipping download and installation of Bison because %s exists", bisonConfig.executable))
-			return messages, err
+		if executableExists {
+			messages = append(messages, fmt.Sprintf("Skipping download and installation of Bison because %s (from config.toml) exists", bisonConfig.executable))
+			return messages, nil
 		} else {
-			err = fmt.Errorf("Specified Bison executable %s is outside the toolchain and does not exist.")
+			err = fmt.Errorf("User-specified Bison executable %s does not exist.")
 			return messages, err
+		}
+	}
+	if bisonConfig.toolchainExecutable != "" {
+		executableExists, err := fileExistsAtPath(bisonConfig.toolchainExecutable)
+		if err != nil {
+			log.Printf("fileExistsAtPath err\n")
+			return messages, err
+		}
+		if executableExists {
+			if bisonConfig.version == bisonConfig.toolchainVersion {
+				messages = append(messages, fmt.Sprintf("Skipping download and installation of Bison because %s (from toolchain) exists", bisonConfig.toolchainExecutable))
+				return messages, nil
+			} else {
+				messages = append(messages, fmt.Sprintf("The toolchain executable does not match the desired version.  Continuing."))
+			}
 		}
 	}
 	err = ensureDownloadDirExists(buildToolConfig.Directories.DownloadDir)
@@ -81,11 +91,11 @@ func BootstrapBison(buildToolConfig *RuntimeConfigBuildTool) ([]string, error) {
 		return messages, err
 	}
 	downloadPath := filepath.Join(buildToolConfig.Directories.DownloadDir, bisonConfig.downloadFile)
-	exists, err = fileExistsAtPath(downloadPath)
+	downloadPathExists, err := fileExistsAtPath(downloadPath)
 	if err != nil {
 		return messages, err
 	}
-	if exists {
+	if downloadPathExists {
 		messages = append(messages, fmt.Sprintf("Skipping Bison download because %s exists", downloadPath))
 	} else {
 		err := downloadUrlToDir(bisonConfig.downloadUrl, buildToolConfig.Directories.DownloadDir, downloadPath)
@@ -117,8 +127,8 @@ func BootstrapBison(buildToolConfig *RuntimeConfigBuildTool) ([]string, error) {
 	if err != nil {
 		return messages, err
 	}
-	bisonConfig.executable = filepath.Join(bisonConfig.toolchainDir, "tests", "bison")
-	err = updateBisonToolchainToml(buildToolConfig.Directories.ToolChainDir, bisonConfig.executable, bisonConfig.version)
+	toolchainTomlExecutable := filepath.Join(bisonConfig.versionedDir, "tests", "bison")
+	err = updateBisonToolchainToml(buildToolConfig.Directories.ToolChainDir, toolchainTomlExecutable, bisonConfig.version)
 	return messages, err
 }
 
@@ -201,7 +211,7 @@ func getBisonConfig(buildToolConfig *RuntimeConfigBuildTool) (*bisonConfig, erro
 	// Toolchain directory
 	toolchainDir := buildToolConfig.Bison.toolchainDir
 	// Toolchain executable
-	toolchainExecutable := buildToolConfig.Bison.toolchainExecutable
+	toolchainExecutable := buildToolConfig.Bison.ToolChainExecutable
 	// Toolchain version
 	toolchainVersion := buildToolConfig.Bison.toolchainVersion
 	versionedDir := buildToolConfig.Bison.versionedDir

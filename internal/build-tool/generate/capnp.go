@@ -19,7 +19,6 @@ package generate
 import (
 	"bytes"
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -41,10 +40,7 @@ func GenerateCapnp(buildToolConfig *buildtool.RuntimeConfigBuildTool) ([]string,
 		messages = append(messages, "Failed to get the Generate Cap'n Proto configuration")
 		return messages, err
 	}
-	log.Printf("GenerateCapnp\n")
-	log.Printf("%+v", buildToolConfig)
 	capnpFilepaths, err := getGlobbedCapnpFilePaths(config)
-	log.Printf("%+v", capnpFilepaths)
 	for _, capnpFilepath := range capnpFilepaths {
 		cgr, err := codeGeneratorRequestWithCapnp(config, capnpFilepath)
 		if err != nil {
@@ -68,7 +64,6 @@ func codeGeneratorRequestWithCapnp(config *generateCapnpConfig, capnpFilepath st
 		"--import-path=capnp",
 		capnpFilepath,
 	)
-	log.Printf("%+v", cmd.Args)
 	cmd.Env = append(cmd.Env, os.Environ()...)
 	cmd.Stderr = os.Stderr
 	codeGeneratorRequest, err := cmd.Output()
@@ -91,9 +86,25 @@ func getGenerateCapnpConfig(buildToolConfig *buildtool.RuntimeConfigBuildTool) (
 	if buildToolConfig.GoCapnp == nil {
 		return nil, fmt.Errorf("buildToolConfig.GoCapnp is nil")
 	}
-	capnpExecutable := buildToolConfig.CapnProto.Executable
 	capnpDirs := buildToolConfig.Generate.Capnp.CapnpDirs
-	goCapnpExecutable := buildToolConfig.GoCapnp.Executable
+	// Cap'n Proto executable
+	capnpExecutable := ""
+	if buildToolConfig.CapnProto.Executable != "" {
+		capnpExecutable = buildToolConfig.CapnProto.Executable
+	} else if buildToolConfig.CapnProto.ToolChainExecutable != "" {
+		capnpExecutable = buildToolConfig.CapnProto.ToolChainExecutable
+	} else {
+		return nil, fmt.Errorf("Unable to find Cap'n Proto executable")
+	}
+	// go-capnp executable
+	goCapnpExecutable := ""
+	if buildToolConfig.GoCapnp.Executable != "" {
+		goCapnpExecutable = buildToolConfig.GoCapnp.Executable
+	} else if buildToolConfig.GoCapnp.ToolChainExecutable != "" {
+		goCapnpExecutable = buildToolConfig.GoCapnp.ToolChainExecutable
+	} else {
+		return nil, fmt.Errorf("Unable to find go-capnp executable")
+	}
 	//	incrementalDir := buildToolConfig.Directories.IncrementalDir
 	stdDir := buildToolConfig.Generate.Capnp.StdDir
 
@@ -120,6 +131,9 @@ func getGlobbedCapnpFilePaths(config *generateCapnpConfig) ([]string, error) {
 func writeGoCapnpFileWithCGR(config *generateCapnpConfig, capnpFilepath string, codeGeneratorRequest []byte) error {
 	capnpDirectory := filepath.Dir(capnpFilepath)
 	cmd := exec.Command(config.goCapnpExecutable)
+	// The CodeGeneratorRequest contains the name of the source file, which
+	// is used to create the destination file.  We have to put it in the
+	// correct directory.
 	cmd.Dir = capnpDirectory
 	cmd.Stdin = bytes.NewReader(codeGeneratorRequest)
 	cmd.Stdout = os.Stdout

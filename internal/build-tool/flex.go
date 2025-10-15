@@ -58,23 +58,33 @@ func BootstrapFlex(buildToolConfig *RuntimeConfigBuildTool) ([]string, error) {
 		messages = append(messages, "Failed to get Flex configuration")
 		return messages, err
 	}
-	exists, err := fileExistsAtPath(flexConfig.executable)
-	if err != nil {
-		log.Printf("fileExistsAtPath err\n")
-		return messages, err
-	}
-	if flexConfig.executable == flexConfig.toolchainExecutable {
-		if flexConfig.version == flexConfig.toolchainVersion && exists {
-			messages = append(messages, fmt.Sprintf("Skipping download and installation of Flex because %s exists", flexConfig.executable))
+	if flexConfig.executable != "" {
+		executableExists, err := fileExistsAtPath(flexConfig.executable)
+		if err != nil {
+			log.Printf("fileExistsAtPath err\n")
 			return messages, err
 		}
-	} else if flexConfig.executable != "" {
-		if exists {
-			messages = append(messages, fmt.Sprintf("Skipping download and installation of Flex because %s exists", flexConfig.executable))
-			return messages, err
+		if executableExists {
+			messages = append(messages, fmt.Sprintf("Skipping download and installation of Flex because %s (from config.toml) exists", flexConfig.executable))
+			return messages, nil
 		} else {
-			err = fmt.Errorf("Specified Flex executable %s is outside the toolchain and does not exist.")
+			err = fmt.Errorf("User-specified Flex executable %s does not exist.")
 			return messages, err
+		}
+	}
+	if flexConfig.toolchainExecutable != "" {
+		executableExists, err := fileExistsAtPath(flexConfig.toolchainExecutable)
+		if err != nil {
+			log.Printf("fileExistsAtPath err\n")
+			return messages, err
+		}
+		if executableExists {
+			if flexConfig.version == flexConfig.toolchainVersion {
+				messages = append(messages, fmt.Sprintf("Skipping download and installation of Flex because %s (from toolchain) exists", flexConfig.toolchainExecutable))
+				return messages, nil
+			} else {
+				messages = append(messages, fmt.Sprintf("The toolchain executable does not match the desired version.  Continuing."))
+			}
 		}
 	}
 	err = ensureDownloadDirExists(buildToolConfig.Directories.DownloadDir)
@@ -82,11 +92,11 @@ func BootstrapFlex(buildToolConfig *RuntimeConfigBuildTool) ([]string, error) {
 		return messages, err
 	}
 	downloadPath := filepath.Join(buildToolConfig.Directories.DownloadDir, flexConfig.downloadFile)
-	exists, err = fileExistsAtPath(downloadPath)
+	downloadPathExists, err := fileExistsAtPath(downloadPath)
 	if err != nil {
 		return messages, err
 	}
-	if exists {
+	if downloadPathExists {
 		messages = append(messages, fmt.Sprintf("Skipping Flex download because %s exists", downloadPath))
 	} else {
 		err := downloadUrlToDir(flexConfig.downloadUrl, buildToolConfig.Directories.DownloadDir, downloadPath)
@@ -118,8 +128,8 @@ func BootstrapFlex(buildToolConfig *RuntimeConfigBuildTool) ([]string, error) {
 	if err != nil {
 		return messages, err
 	}
-	flexConfig.executable = filepath.Join(flexConfig.toolchainDir, "src", "flex")
-	err = updateFlexToolchainToml(buildToolConfig.Directories.ToolChainDir, flexConfig.executable, flexConfig.version)
+	toolchainTomlExecutable := filepath.Join(flexConfig.versionedDir, "src", "flex")
+	err = updateFlexToolchainToml(buildToolConfig.Directories.ToolChainDir, toolchainTomlExecutable, flexConfig.version)
 	return messages, err
 }
 
@@ -199,13 +209,13 @@ func getFlexConfig(buildToolConfig *RuntimeConfigBuildTool) (*flexConfig, error)
 	expectedFileSize := downloadFileInfo.size
 	expectedSha256 := downloadFileInfo.sha256
 	// Versioned directory
-	versionedDir := "flex-" + version
+	versionedDir := buildToolConfig.Flex.versionedDir
 	// Install directory
 	toolchainDir := buildToolConfig.Flex.toolchainDir
 	// Flex executable
 	executable := buildToolConfig.Flex.Executable
 	// Toolchain executable
-	toolchainExecutable := buildToolConfig.Flex.toolchainExecutable
+	toolchainExecutable := buildToolConfig.Flex.ToolChainExecutable
 	// Toolchain version
 	toolchainVersion := buildToolConfig.Flex.toolchainVersion
 

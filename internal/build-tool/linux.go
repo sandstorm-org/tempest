@@ -54,11 +54,11 @@ func downloadAndVerifyLinuxTarball(buildToolConfig *RuntimeConfigBuildTool) (str
 		return "", messages, err
 	}
 	downloadPath := filepath.Join(buildToolConfig.Directories.DownloadDir, linuxConfig.downloadFile)
-	exists, err := fileExistsAtPath(downloadPath)
+	downloadPathExists, err := fileExistsAtPath(downloadPath)
 	if err != nil {
 		return "", messages, err
 	}
-	if exists {
+	if downloadPathExists {
 		messages = append(messages, fmt.Sprintf("Skipping Linux download because %s exists", downloadPath))
 	} else {
 		err := downloadUrlToDir(linuxConfig.downloadUrl, buildToolConfig.Directories.DownloadDir, downloadPath)

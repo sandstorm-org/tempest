@@ -38,6 +38,7 @@ type capnProtoConfig struct {
 	toolchainExecutable string
 	toolchainVersion    string
 	version             string
+	versionedDir        string
 }
 
 // text/template uses these struct fields from a separate package, so they must be in PascalCase.
@@ -57,23 +58,33 @@ func BootstrapCapnProto(buildToolConfig *RuntimeConfigBuildTool) ([]string, erro
 		messages = append(messages, "Failed to get Cap'n Proto configuration")
 		return messages, err
 	}
-	exists, err := fileExistsAtPath(capnProtoConfig.executable)
-	if err != nil {
-		log.Printf("fileExistsAtPath err\n")
-		return messages, err
-	}
-	if capnProtoConfig.executable == capnProtoConfig.toolchainExecutable {
-		if capnProtoConfig.version == capnProtoConfig.toolchainVersion && exists {
-			messages = append(messages, fmt.Sprintf("Skipping download and installation of Cap'n Proto because %s exists", capnProtoConfig.executable))
+	if capnProtoConfig.executable != "" {
+		executableExists, err := fileExistsAtPath(capnProtoConfig.executable)
+		if err != nil {
+			log.Printf("fileExistsAtPath err\n")
 			return messages, err
 		}
-	} else if capnProtoConfig.executable != "" {
-		if exists {
-			messages = append(messages, fmt.Sprintf("Skipping download and installation of Cap'n Proto because %s exists", capnProtoConfig.executable))
-			return messages, err
+		if executableExists {
+			messages = append(messages, fmt.Sprintf("Skipping download and installation of Cap'n Proto because %s (from config.toml) exists", capnProtoConfig.executable))
+			return messages, nil 
 		} else {
-			err = fmt.Errorf("Specified Cap'n Proto executable %s is outside the toolchain and does not exist.")
+			err = fmt.Errorf("User-specified Cap'n Proto executable %s does not exist.")
 			return messages, err
+		}
+	}
+	if capnProtoConfig.toolchainExecutable != "" {
+		executableExists, err := fileExistsAtPath(capnProtoConfig.toolchainExecutable)
+		if err != nil {
+			log.Printf("fileExistsAtPath err\n")
+			return messages, err
+		}
+		if executableExists {
+			if capnProtoConfig.version == capnProtoConfig.toolchainVersion {
+				messages = append(messages, fmt.Sprintf("Skipping download and installation of Cap'n Proto because %s (from toolchain) exists", capnProtoConfig.toolchainExecutable))
+				return messages, nil
+			} else {
+				messages = append(messages, fmt.Sprintf("The toolchain executable does not match the desired version.  Contining."))
+			}
 		}
 	}
 	err = ensureDownloadDirExists(buildToolConfig.Directories.DownloadDir)
@@ -81,11 +92,11 @@ func BootstrapCapnProto(buildToolConfig *RuntimeConfigBuildTool) ([]string, erro
 		return messages, err
 	}
 	downloadPath := filepath.Join(buildToolConfig.Directories.DownloadDir, capnProtoConfig.downloadFile)
-	exists, err = fileExistsAtPath(downloadPath)
+	downloadPathExists, err := fileExistsAtPath(downloadPath)
 	if err != nil {
 		return messages, err
 	}
-	if exists {
+	if downloadPathExists {
 		messages = append(messages, fmt.Sprintf("Skipping Cap'n Proto download because %s exists", downloadPath))
 	} else {
 		err := downloadUrlToDir(capnProtoConfig.downloadUrl, buildToolConfig.Directories.DownloadDir, downloadPath)
@@ -119,8 +130,8 @@ func BootstrapCapnProto(buildToolConfig *RuntimeConfigBuildTool) ([]string, erro
 		messages = append(messages, "Failed while running make for Cap'n Proto")
 		return messages, err
 	}
-	capnProtoConfig.executable = filepath.Join(capnProtoConfig.toolchainDir, "capnp")
-	err = updateCapnProtoToolchainToml(buildToolConfig.Directories.ToolChainDir, capnProtoConfig.executable, capnProtoConfig.version)
+	toolchainTomlExecutable := filepath.Join(capnProtoConfig.versionedDir, "capnp")
+	err = updateCapnProtoToolchainToml(buildToolConfig.Directories.ToolChainDir, toolchainTomlExecutable, capnProtoConfig.version)
 	return messages, err
 }
 
@@ -191,17 +202,18 @@ func getCapnProtoConfig(buildToolConfig *RuntimeConfigBuildTool) (*capnProtoConf
 	// Expected file size and SHA-256
 	expectedFileSize := downloadFileInfo.size
 	expectedSha256 := downloadFileInfo.sha256
-	// Install directory
-	capnProtoVersionedDir := "capnproto-" + version
-	toolchainDir := filepath.Join(buildToolConfig.Directories.ToolChainDir, capnProtoVersionedDir)
 	// TarGz directory
 	tarGzDir := "capnproto-c++-" + version
 	// capnp executable
 	executable := buildToolConfig.CapnProto.Executable
+	// Toolchain directory
+	toolchainDir := buildToolConfig.CapnProto.toolchainDir
 	// Toolchain executable
-	toolchainExecutable := buildToolConfig.CapnProto.toolchainExecutable
+	toolchainExecutable := buildToolConfig.CapnProto.ToolChainExecutable
 	// Toolchain version
 	toolchainVersion := buildToolConfig.CapnProto.toolchainVersion
+	// Versioned directory
+	versionedDir := buildToolConfig.CapnProto.versionedDir
 
 	capnProtoConfig := new(capnProtoConfig)
 	capnProtoConfig.downloadFile = downloadFile
@@ -214,6 +226,7 @@ func getCapnProtoConfig(buildToolConfig *RuntimeConfigBuildTool) (*capnProtoConf
 	capnProtoConfig.toolchainExecutable = toolchainExecutable
 	capnProtoConfig.toolchainVersion = toolchainVersion
 	capnProtoConfig.version = version
+	capnProtoConfig.versionedDir = versionedDir
 	return capnProtoConfig, nil
 }
 

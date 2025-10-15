@@ -40,6 +40,7 @@ type goCapnpConfig struct {
 	toolchainExecutable string
 	toolchainVersion    string
 	version             string
+	versionedDir        string
 }
 
 // text/template uses these struct fields from a separate package, so they must be in PascalCase.
@@ -59,23 +60,33 @@ func BootstrapGoCapnp(buildToolConfig *RuntimeConfigBuildTool) ([]string, error)
 		messages = append(messages, "Failed to get go-capnp configuration")
 		return messages, err
 	}
-	exists, err := fileExistsAtPath(goCapnpConfig.executable)
-	if err != nil {
-		log.Printf("fileExistsAtPath err\n")
-		return messages, err
-	}
-	if goCapnpConfig.executable == goCapnpConfig.toolchainExecutable {
-		if goCapnpConfig.version == goCapnpConfig.toolchainVersion && exists {
-			messages = append(messages, fmt.Sprintf("Skipping download and installation of go-capnp because %s exists", goCapnpConfig.executable))
+	if goCapnpConfig.executable != "" {
+		executableExists, err := fileExistsAtPath(goCapnpConfig.executable)
+		if err != nil {
+			log.Printf("fileExistsAtPath err\n")
 			return messages, err
 		}
-	} else if goCapnpConfig.executable != "" {
-		if exists {
-			messages = append(messages, fmt.Sprintf("Skipping download and installation of go-capnp because %s exists", goCapnpConfig.executable))
-			return messages, err
+		if executableExists {
+			messages = append(messages, fmt.Sprintf("Skipping download and installation of go-capnp because %s (from config.toml) exists", goCapnpConfig.executable))
+			return messages, nil
 		} else {
-			err = fmt.Errorf("Specified go-capnp executable %s is outside the toolchain and does not exist.")
+			err = fmt.Errorf("User-specified go-capnp executable %s does not exist.")
 			return messages, err
+		}
+	}
+	if goCapnpConfig.toolchainExecutable != "" {
+		executableExists, err := fileExistsAtPath(goCapnpConfig.toolchainExecutable)
+		if err != nil {
+			log.Printf("fileExistsAtPath err\n")
+			return messages, err
+		}
+		if executableExists {
+			if goCapnpConfig.version == goCapnpConfig.toolchainVersion {
+				messages = append(messages, fmt.Sprintf("Skipping download and installation of go-capnp because %s (from toolchain) exists", goCapnpConfig.executable))
+				return messages, nil
+			} else {
+				messages = append(messages, fmt.Sprintf("The toolchain executable does not match the desired version.  Continuing."))
+			}
 		}
 	}
 	err = ensureDownloadDirExists(buildToolConfig.Directories.DownloadDir)
@@ -83,11 +94,11 @@ func BootstrapGoCapnp(buildToolConfig *RuntimeConfigBuildTool) ([]string, error)
 		return messages, err
 	}
 	downloadPath := filepath.Join(buildToolConfig.Directories.DownloadDir, goCapnpConfig.downloadFile)
-	exists, err = fileExistsAtPath(downloadPath)
+	downloadPathExists, err := fileExistsAtPath(downloadPath)
 	if err != nil {
 		return messages, err
 	}
-	if exists {
+	if downloadPathExists {
 		messages = append(messages, fmt.Sprintf("Skipping go-capnp download because %s exists", downloadPath))
 	} else {
 		err := downloadUrlToDir(goCapnpConfig.downloadUrl, buildToolConfig.Directories.DownloadDir, downloadPath)
@@ -117,8 +128,8 @@ func BootstrapGoCapnp(buildToolConfig *RuntimeConfigBuildTool) ([]string, error)
 		messages = append(messages, "Failed while running go build for capnpc-go")
 		return messages, err
 	}
-	goCapnpConfig.executable = filepath.Join(goCapnpConfig.toolchainDir, "capnpc-go", "capnpc-go")
-	err = updateGoCapnpToolchainToml(buildToolConfig.Directories.ToolChainDir, goCapnpConfig.executable, goCapnpConfig.version)
+	toolchainTomlExecutable := filepath.Join(goCapnpConfig.versionedDir, "capnpc-go", "capnpc-go")
+	err = updateGoCapnpToolchainToml(buildToolConfig.Directories.ToolChainDir, toolchainTomlExecutable, goCapnpConfig.version)
 	return messages, err
 }
 
@@ -209,7 +220,7 @@ func getGoCapnpConfig(buildToolConfig *RuntimeConfigBuildTool) (*goCapnpConfig, 
 	// capnp executable
 	executable := buildToolConfig.GoCapnp.Executable
 	// Toolchain executable
-	toolchainExecutable := buildToolConfig.GoCapnp.toolchainExecutable
+	toolchainExecutable := buildToolConfig.GoCapnp.ToolChainExecutable
 	// Toolchain version
 	toolchainVersion := buildToolConfig.GoCapnp.toolchainVersion
 

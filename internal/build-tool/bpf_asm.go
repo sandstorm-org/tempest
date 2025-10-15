@@ -42,23 +42,33 @@ func BootstrapBpfAsm(buildToolConfig *RuntimeConfigBuildTool) ([]string, error) 
 		messages = append(messages, "Failed to get bpf_asm configuration")
 		return messages, err
 	}
-	exists, err := fileExistsAtPath(bpfAsmConfig.executable)
-	if err != nil {
-		log.Printf("fileExistsAtPath err\n")
-		return messages, err
-	}
-	if bpfAsmConfig.executable == bpfAsmConfig.toolchainExecutable {
-		if bpfAsmConfig.version == bpfAsmConfig.toolchainVersion && exists {
-			messages = append(messages, fmt.Sprintf("Skipping download and installation of bpf_asm because %s exists", bpfAsmConfig.executable))
+	if bpfAsmConfig.executable != "" {
+		executableExists, err := fileExistsAtPath(bpfAsmConfig.executable)
+		if err != nil {
+			log.Printf("fileExistsAtPath err\n")
 			return messages, err
 		}
-	} else if bpfAsmConfig.executable != "" {
-		if exists {
-			messages = append(messages, fmt.Sprintf("Skipping download and installation of bpf_asm because %s exists", bpfAsmConfig.executable))
-			return messages, err
+		if executableExists {
+			messages = append(messages, fmt.Sprintf("Skipping download and installation of bpf_asm because %s (from config.toml) exists", bpfAsmConfig.executable))
+			return messages, nil
 		} else {
-			err = fmt.Errorf("Specified bpf_asm executable %s is outside the toolchain and does not exist.")
+			err = fmt.Errorf("User-specified bpf_asm executable %s does not exist.")
 			return messages, err
+		}
+	}
+	if bpfAsmConfig.toolchainExecutable != "" {
+		executableExists, err := fileExistsAtPath(bpfAsmConfig.toolchainExecutable)
+		if err != nil {
+			log.Printf("fileExistsAtPath err\n")
+			return messages, err
+		}
+		if executableExists {
+			if bpfAsmConfig.version == bpfAsmConfig.toolchainVersion {
+				messages = append(messages, fmt.Sprintf("Skipping download and installation of bpf_asm because %s (from toolchain) exists", bpfAsmConfig.toolchainExecutable))
+				return messages, nil
+			} else {
+				messages = append(messages, fmt.Sprintf("The toolchain executable does not match the desired version.  Continuing."))
+			}
 		}
 	}
 	var downloadMessages []string
@@ -84,8 +94,11 @@ func BootstrapBpfAsm(buildToolConfig *RuntimeConfigBuildTool) ([]string, error) 
 	if err != nil {
 		return messages, err
 	}
-	bpfAsmConfig.executable = filepath.Join(bpfAsmConfig.makePath, "bpf_asm")
-	err = updateBpfAsmToolchainToml(buildToolConfig.Directories.ToolChainDir, bpfAsmConfig.executable, bpfAsmConfig.version)
+	toolchainTomlExecutable, err := filepath.Rel(buildToolConfig.Directories.ToolChainDir, filepath.Join(bpfAsmConfig.makePath, "bpf_asm"))
+	if err != nil {
+		return messages, err
+	}
+	err = updateBpfAsmToolchainToml(buildToolConfig.Directories.ToolChainDir, toolchainTomlExecutable, bpfAsmConfig.version)
 	return messages, err
 }
 
@@ -104,9 +117,23 @@ func getBpfAsmConfig(buildToolConfig *RuntimeConfigBuildTool) (*bpfAsmConfig, er
 	// BpfAsm version
 	version := buildToolConfig.BpfAsm.version
 	// Bison executable
-	bisonExecutable := buildToolConfig.Bison.Executable
+	bisonExecutable := ""
+	if buildToolConfig.Bison.Executable != "" {
+		bisonExecutable = buildToolConfig.Bison.Executable
+	} else if buildToolConfig.Bison.ToolChainExecutable != "" {
+		bisonExecutable = buildToolConfig.Bison.ToolChainExecutable
+	} else {
+		return nil, fmt.Errorf("Unable to find Bison executable")
+	}
 	// Flex executable
-	flexExecutable := buildToolConfig.Flex.Executable
+	flexExecutable := ""
+	if buildToolConfig.Flex.Executable != "" {
+		flexExecutable = buildToolConfig.Flex.Executable
+	} else if buildToolConfig.Flex.ToolChainExecutable != "" {
+		flexExecutable = buildToolConfig.Flex.ToolChainExecutable
+	} else {
+		return nil, fmt.Errorf("Unable to find Flex executable")
+	}
 	// Install directory
 	bpfAsmVersionedDir := "bpf_asm-" + version
 	toolchainDir := filepath.Join(buildToolConfig.Directories.ToolChainDir, bpfAsmVersionedDir)
@@ -115,7 +142,7 @@ func getBpfAsmConfig(buildToolConfig *RuntimeConfigBuildTool) (*bpfAsmConfig, er
 	// BpfAsm make path
 	makePath := filepath.Join(toolchainDir, "tools", "bpf")
 	// Toolchain executable
-	toolchainExecutable := buildToolConfig.BpfAsm.toolchainExecutable
+	toolchainExecutable := buildToolConfig.BpfAsm.ToolChainExecutable
 	// Toolchain version
 	toolchainVersion := buildToolConfig.BpfAsm.toolchainVersion
 

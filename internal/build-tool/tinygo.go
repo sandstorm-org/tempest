@@ -37,6 +37,7 @@ type tinyGoConfig struct {
 	toolchainExecutable string
 	toolchainVersion    string
 	version             string
+	versionedDir        string
 }
 
 // text/template uses these struct fields from a separate package, so they must be in PascalCase.
@@ -58,23 +59,33 @@ func BootstrapTinyGo(buildToolConfig *RuntimeConfigBuildTool) ([]string, error) 
 		messages = append(messages, "Failed to get TinyGo configuration")
 		return messages, err
 	}
-	exists, err := fileExistsAtPath(tinyGoConfig.executable)
-	if err != nil {
-		log.Printf("fileExistsAtPath err\n")
-		return messages, err
-	}
-	if tinyGoConfig.executable == tinyGoConfig.toolchainExecutable {
-		if tinyGoConfig.version == tinyGoConfig.toolchainVersion && exists {
-			messages = append(messages, fmt.Sprintf("Skipping download and installation of TinyGo because %s exists", tinyGoConfig.executable))
+	if tinyGoConfig.executable != "" {
+		executableExists, err := fileExistsAtPath(tinyGoConfig.executable)
+		if err != nil {
+			log.Printf("fileExistsAtPath err\n")
 			return messages, err
 		}
-	} else if tinyGoConfig.executable != "" {
-		if exists {
-			messages = append(messages, fmt.Sprintf("Skipping download and installation of TinyGo because %s exists", tinyGoConfig.executable))
-			return messages, err
+		if executableExists {
+			messages = append(messages, fmt.Sprintf("Skipping download and installation of TinyGo because %s (from config.toml) exists", tinyGoConfig.executable))
+			return messages, nil
 		} else {
-			err = fmt.Errorf("Specified TinyGo executable %s is outside the toolchain and does not exist.")
+			err = fmt.Errorf("User-specified TinyGo executable %s does not exist.")
 			return messages, err
+		}
+	}
+	if tinyGoConfig.toolchainExecutable != "" {
+		executableExists, err := fileExistsAtPath(tinyGoConfig.toolchainExecutable)
+		if err != nil {
+			log.Printf("fileExistsAtPath err\n")
+			return messages, err
+		}
+		if executableExists {
+			if tinyGoConfig.version == tinyGoConfig.toolchainVersion {
+				messages = append(messages, fmt.Sprintf("Skipping download and installation of TinyGo because %s (toolchain) exists", tinyGoConfig.toolchainExecutable))
+				return messages, nil
+			} else {
+				messages = append(messages, fmt.Sprintf("The toolchain executable does not match the desired version.  Continuing."))
+			}
 		}
 	}
 	err = ensureDownloadDirExists(buildToolConfig.Directories.DownloadDir)
@@ -82,11 +93,11 @@ func BootstrapTinyGo(buildToolConfig *RuntimeConfigBuildTool) ([]string, error) 
 		return messages, err
 	}
 	downloadPath := filepath.Join(buildToolConfig.Directories.DownloadDir, tinyGoConfig.downloadFile)
-	exists, err = fileExistsAtPath(downloadPath)
+	downloadPathExists, err := fileExistsAtPath(downloadPath)
 	if err != nil {
 		return messages, err
 	}
-	if exists {
+	if downloadPathExists {
 		messages = append(messages, fmt.Sprintf("Skipping TinyGo download because %s exists", downloadPath))
 	} else {
 		err := downloadUrlToDir(tinyGoConfig.downloadUrl, buildToolConfig.Directories.DownloadDir, downloadPath)
@@ -103,12 +114,12 @@ func BootstrapTinyGo(buildToolConfig *RuntimeConfigBuildTool) ([]string, error) 
 		return messages, err
 	}
 	messages = append(messages, fmt.Sprintf("%s has the correct SHA-256", downloadPath))
-	exists, err = fileExistsAtPath(tinyGoConfig.executable)
+	executableExists, err := fileExistsAtPath(tinyGoConfig.executable)
 	if err != nil {
 		log.Printf("fileExistsAtPath err\n")
 		return messages, err
 	}
-	if exists {
+	if executableExists {
 		messages = append(messages, fmt.Sprintf("Refusing to install TinyGo because %s exists", tinyGoConfig.executable))
 	} else {
 		transformTinyGoTarGz := transformTinyGoTarGzFactory(tinyGoConfig.toolchainDir)
@@ -121,18 +132,19 @@ func BootstrapTinyGo(buildToolConfig *RuntimeConfigBuildTool) ([]string, error) 
 	// is current, then make will not invoke the target.  If its modified
 	// time is not updated, then make will extract TinyGo every time the
 	// TinyGo target is invoked.
-	exists, err = fileExistsAtPath(tinyGoConfig.executable)
+	executableExists, err = fileExistsAtPath(tinyGoConfig.executable)
 	if err != nil {
 		log.Printf("fileExistsAtPath err\n")
 		return messages, err
 	}
-	if exists {
+	if executableExists {
 		err = setFileModifiedTimeToNow(tinyGoConfig.executable)
 	}
 	if err != nil {
 		return messages, err
 	}
-	err = updateTinyGoToolchainToml(buildToolConfig.Directories.ToolChainDir, tinyGoConfig.executable, tinyGoConfig.version)
+	toolchainTomlExecutable := filepath.Join(tinyGoConfig.versionedDir, "bin", "tinygo")
+	err = updateTinyGoToolchainToml(buildToolConfig.Directories.ToolChainDir, toolchainTomlExecutable, tinyGoConfig.version)
 	return messages, err
 }
 
@@ -199,12 +211,13 @@ func getTinyGoConfig(buildToolConfig *RuntimeConfigBuildTool) (*tinyGoConfig, er
 	// TinyGo executable
 	executable := buildToolConfig.TinyGo.Executable
 	// Toolchain directory
-	tinyGoVersionedDir := "tinygo-" + version
-	toolchainDir := filepath.Join(buildToolConfig.Directories.ToolChainDir, tinyGoVersionedDir)
+	toolchainDir := buildToolConfig.TinyGo.toolchainDir
 	// Toolchain executable
-	toolchainExecutable := buildToolConfig.TinyGo.toolchainExecutable
+	toolchainExecutable := buildToolConfig.TinyGo.ToolChainExecutable
 	// Toolchain version
 	toolchainVersion := buildToolConfig.TinyGo.toolchainVersion
+	// Versioned directory
+	versionedDir := buildToolConfig.TinyGo.versionedDir
 
 	tinyGoConfig := new(tinyGoConfig)
 	tinyGoConfig.downloadFile = downloadFile
@@ -216,6 +229,7 @@ func getTinyGoConfig(buildToolConfig *RuntimeConfigBuildTool) (*tinyGoConfig, er
 	tinyGoConfig.toolchainVersion = toolchainVersion
 	tinyGoConfig.toolchainExecutable = toolchainExecutable
 	tinyGoConfig.version = version
+	tinyGoConfig.versionedDir = versionedDir
 	return tinyGoConfig, nil
 }
 

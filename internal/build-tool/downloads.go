@@ -21,50 +21,15 @@ import (
 )
 
 type DownloadsTomlTopLevel struct {
-	Bison     DownloadsTomlBison     `toml:"bison"`
-	CapnProto DownloadsTomlCapnProto `toml:"capnproto"`
-	Flex      DownloadsTomlFlex      `toml:"flex"`
-	GoCapnp   DownloadsTomlGoCapnp   `toml:"go-capnp"`
-	Linux     DownloadsTomlLinux     `toml:"linux"`
-	TinyGo    DownloadsTomlTinyGo    `toml:"tinygo"`
+	Bison     DownloadsTomlTool `toml:"bison"`
+	CapnProto DownloadsTomlTool `toml:"capnproto"`
+	Flex      DownloadsTomlTool `toml:"flex"`
+	GoCapnp   DownloadsTomlTool `toml:"go-capnp"`
+	Linux     DownloadsTomlTool `toml:"linux"`
+	TinyGo    DownloadsTomlTool `toml:"tinygo"`
 }
 
-type DownloadsTomlBison struct {
-	DownloadUrlTemplate string
-	FilenameTemplate    string
-	Files               map[string]DownloadsTomlFile
-	PreferredVersion    string
-}
-
-type DownloadsTomlCapnProto struct {
-	DownloadUrlTemplate string
-	FilenameTemplate    string
-	Files               map[string]DownloadsTomlFile
-	PreferredVersion    string
-}
-
-type DownloadsTomlFlex struct {
-	DownloadUrlTemplate string
-	FilenameTemplate    string
-	Files               map[string]DownloadsTomlFile
-	PreferredVersion    string
-}
-
-type DownloadsTomlGoCapnp struct {
-	DownloadUrlTemplate string
-	FilenameTemplate    string
-	Files               map[string]DownloadsTomlFile
-	PreferredVersion    string
-}
-
-type DownloadsTomlLinux struct {
-	DownloadUrlTemplate string
-	FilenameTemplate    string
-	Files               map[string]DownloadsTomlFile
-	PreferredVersion    string
-}
-
-type DownloadsTomlTinyGo struct {
+type DownloadsTomlTool struct {
 	DownloadUrlTemplate string
 	FilenameTemplate    string
 	Files               map[string]DownloadsTomlFile

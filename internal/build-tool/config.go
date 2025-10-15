@@ -125,7 +125,7 @@ type RuntimeConfigBuildTool struct {
 	CapnProto *runtimeConfigTool
 	Flex      *runtimeConfigTool
 	Generate  *runtimeConfigGenerate
-	GoCapnp   *runtimeConfigGoCapnp
+	GoCapnp   *runtimeConfigTool
 	linux     *runtimeConfigLinux
 	TinyGo    *runtimeConfigTool
 }
@@ -290,8 +290,10 @@ func BuildConfiguration(configFile *ConfigTomlTopLevel, downloadsFile *Downloads
 	// go-capnp
 	// config.Generate.Capnp needs values from config.GoCapnp, so this
 	// comes first.
-	config.GoCapnp = new(runtimeConfigGoCapnp)
-	err = populateBuildGoCapnpRuntimeConfig(config.GoCapnp, config.Directories, &configFile.BuildTool.GoCapnp, &downloadsFile.GoCapnp, toolchainToml)
+	config.GoCapnp = new(runtimeConfigTool)
+	config.GoCapnp.Name = "go-capnp"
+	config.GoCapnp.Prefix = "go-capnp-"
+	err = populateToolRuntimeConfig(config.GoCapnp, config.Directories, &configFile.BuildTool.GoCapnp, &downloadsFile.GoCapnp, toolchainToml.GoCapnp)
 	if err != nil {
 		return nil, err
 	}
@@ -532,47 +534,6 @@ func populateGenerateCapnpRuntimeConfig(runtimeConfig *runtimeConfigGenerateCapn
 		return nil
 	}
 	runtimeConfig.StdDir = stdDir
-	return nil
-}
-
-func populateBuildGoCapnpRuntimeConfig(runtimeConfig *runtimeConfigGoCapnp, directories *runtimeConfigDirectories, configFile *ConfigTomlTool, downloadsFile *DownloadsTomlTool, toolchainToml *ToolchainTomlTopLevel) error {
-	if configFile.DownloadUrl != "" {
-		runtimeConfig.downloadUrlTemplate = configFile.DownloadUrl
-	} else {
-		runtimeConfig.downloadUrlTemplate = downloadsFile.DownloadUrlTemplate
-	}
-	if configFile.Executable != "" {
-		runtimeConfig.Executable = configFile.Executable
-	} else if toolchainToml.GoCapnp != nil && toolchainToml.GoCapnp.Executable != "" {
-		runtimeConfig.Executable = filepath.Join(directories.ToolChainDir, toolchainToml.GoCapnp.Executable)
-	} else {
-		runtimeConfig.Executable = ""
-	}
-	runtimeConfig.filenameTemplate = downloadsFile.FilenameTemplate
-	if toolchainToml.GoCapnp == nil {
-		runtimeConfig.toolchainDir = ""
-		runtimeConfig.ToolChainExecutable = ""
-		runtimeConfig.toolchainVersion = ""
-	} else {
-		runtimeConfig.toolchainDir = filepath.Join(directories.ToolChainDir, "capnproto-"+toolchainToml.GoCapnp.Version)
-		runtimeConfig.ToolChainExecutable = filepath.Join(directories.ToolChainDir, toolchainToml.GoCapnp.Executable)
-		runtimeConfig.toolchainVersion = toolchainToml.GoCapnp.Version
-	}
-	if configFile.Version != "" {
-		runtimeConfig.version = configFile.Version
-	} else {
-		runtimeConfig.version = downloadsFile.PreferredVersion
-	}
-	if runtimeConfig.version == "" {
-		return fmt.Errorf("go-capnp has no configured version")
-	}
-	runtimeConfig.files = make(map[string]runtimeConfigFile)
-	for fileName, fileStruct := range downloadsFile.Files {
-		runtimeConfig.files[fileName] = runtimeConfigFile{
-			fileStruct.Sha256,
-			fileStruct.Size,
-		}
-	}
 	return nil
 }
 

@@ -35,7 +35,7 @@ GO_GET := $(GO) get
 GOCAPNP_VERSION := 3.1.0-alpha.1
 GOCAPNP := $(TOOLCHAIN_DIR)/go-capnp-$(GOCAPNP_VERSION)/bin/go-capnp
 # GOPATH_DIR to not collide with GOPATH
-GOPATH_DIR := $(abspath $(TOOLCHAIN_DIR)/gopath)
+GOPATH_DIR := $(abspath $(TOOLCHAIN_DIR)/gopath-$(GO_VERSION))
 TEMPEST_SANDBOX_LAUNCHER := $(BUILD_DIR)/tempest-sandbox-launcher
 TEMPEST_SANDBOX_LAUNCHER_GEN := \
 				$(BUILD_DIR)/bpf_filter.h \

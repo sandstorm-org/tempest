@@ -69,7 +69,7 @@ CapnpDirs = [
 # {{ .GoVersion }} will expand to the version of Go which built build-tool.
 # {{ .Home }} will expand to the current user's home directory.
 # {{ .ToolChainDir }} will expand to the ToolChainDir directory.
-#GoPathTemplate = "{{ .ToolChainDir }}/gopath"
+#GoPathTemplate = "{{ .ToolChainDir }}/gopath-{{ .GoVersion }}"
 
 [build-tool.go-capnp]
 # Use DownloadUrl to override the DownloadUrlTemplate in downloads.toml.

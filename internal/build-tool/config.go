@@ -425,7 +425,7 @@ func getGoPath(config *RuntimeConfigBuildTool, configFile *ConfigTomlTopLevel) (
 		return goPathFromEnv, nil
 	}
 	// Return a default value
-	goPath, err := filepath.Abs(filepath.Join(config.Directories.ToolChainDir, "gopath"))
+	goPath, err := filepath.Abs(filepath.Join(config.Directories.ToolChainDir, "gopath-"+runtime.Version()))
 	if err != nil {
 		return "", err
 	}

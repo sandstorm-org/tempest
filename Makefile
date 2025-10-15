@@ -79,7 +79,8 @@ clean: clean-tempest-sandbox-launcher
 		go/internal/server/embed/*.wasm \
 		c/config.h  \
 		go/internal/config/config.go
-	find * -type f -name '*.capnp.go' -delete
+	# We decided that, for now, we're going to keep these files around.
+	#find * -type f -name '*.capnp.go' -delete
 	find * -type f -name '*.cgr' -delete
 	find * -type d -empty -delete
 	rm -f $(BUILDTOOL)

@@ -212,17 +212,18 @@ func getGoCapnpConfig(buildToolConfig *RuntimeConfigBuildTool) (*goCapnpConfig, 
 	// Expected file size and SHA-256
 	expectedFileSize := downloadFileInfo.size
 	expectedSha256 := downloadFileInfo.sha256
-	// Install directory
-	goCapnpVersionedDir := "go-capnp-" + version
-	toolchainDir := filepath.Join(buildToolConfig.Directories.ToolChainDir, goCapnpVersionedDir)
 	// TarGz directory
 	tarGzDir := "go-capnp-" + version
 	// capnp executable
 	executable := buildToolConfig.GoCapnp.Executable
+	// Toolchain directory
+	toolchainDir := buildToolConfig.GoCapnp.toolchainDir
 	// Toolchain executable
 	toolchainExecutable := buildToolConfig.GoCapnp.ToolChainExecutable
 	// Toolchain version
 	toolchainVersion := buildToolConfig.GoCapnp.toolchainVersion
+	// Versioned directory
+	versionedDir := buildToolConfig.GoCapnp.versionedDir
 
 	goCapnpConfig := new(goCapnpConfig)
 	goCapnpConfig.downloadFile = downloadFile
@@ -237,6 +238,7 @@ func getGoCapnpConfig(buildToolConfig *RuntimeConfigBuildTool) (*goCapnpConfig, 
 	goCapnpConfig.toolchainExecutable = toolchainExecutable
 	goCapnpConfig.toolchainVersion = toolchainVersion
 	goCapnpConfig.version = version
+	goCapnpConfig.versionedDir = versionedDir
 	return goCapnpConfig, nil
 }
 

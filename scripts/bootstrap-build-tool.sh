@@ -48,7 +48,7 @@ go_download_url="https://go.dev/dl/${go_destination_file}"
 go_expected_sha256="3333f6ea53afa971e9078895eaa4ac7204a8c6b5c68c10e6bc9a33e8e391bdd8"
 go_downloaded_file="${DOWNLOAD_CACHE_DIR}/${go_destination_file}"
 go_install_dir="${toolchain_dir}/go-${go_version}"
-go_executable_file="toolchain/go-${go_version}/bin/go"
+go_executable_file="go-${go_version}/bin/go"
 toolchain_toml="${toolchain_dir}/toolchain.toml"
 
 check_for_existing_installation() {

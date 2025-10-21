@@ -42,10 +42,10 @@
 script_dir="$(cd "$(dirname "$0")" && pwd)"
 toolchain_dir="$(cd "${script_dir}"/.. && pwd)/toolchain"
 
-go_version="1.24.3"
+go_version="1.25.3"
 go_destination_file="go${go_version}.linux-amd64.tar.gz"
 go_download_url="https://go.dev/dl/${go_destination_file}"
-go_expected_sha256="3333f6ea53afa971e9078895eaa4ac7204a8c6b5c68c10e6bc9a33e8e391bdd8"
+go_expected_sha256="0335f314b6e7bfe08c3d0cfaa7c19db961b7b99fb20be62b0a826c992ad14e0f"
 go_downloaded_file="${DOWNLOAD_CACHE_DIR}/${go_destination_file}"
 go_install_dir="${toolchain_dir}/go-${go_version}"
 go_executable_file="go-${go_version}/bin/go"

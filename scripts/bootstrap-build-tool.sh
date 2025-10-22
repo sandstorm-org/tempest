@@ -34,6 +34,7 @@
 # 15 - Failed to extract Go from Go release archive.
 # 16 - Existing Go installation detected.
 # 17 - Failed to remove the (created) SHA256SUMS file.
+# 18 - Failed to download the Go release.
 
 # User settings
 [ -z "${DOWNLOAD_CACHE_DIR}" ] && DOWNLOAD_CACHE_DIR="${HOME}/.cache/tempest-build-tool/downloads"
@@ -111,6 +112,9 @@ download_go() {
 		printf 'Downloading %s' "${download_url}"
 		retryable_curl "${download_url}" "${download_to_file}"
 	fi
+	if [ ! -f "${download_to_file}" ]; then
+		fail 18 "Failed to download \"${download_to_file}\" from \"${download_url}\"."
+	fi
 	# Continue to SHA-256 check
 }
 
@@ -145,8 +149,6 @@ fail() {
 # Ask the user a yes/no question.
 prompt_yesno() {
 	while true; do
-		input
-
 		printf '%s' "$*"
 		read -r input
 
@@ -166,15 +168,19 @@ prompt_yesno() {
 # Download a file, giving the user the option to retry on failure.
 retryable_curl() {
 	backoff_delay=1
+	max_delay=5
 	success="yes"
 	[ -n "$3" ] && [ "$3" -ge 1 ] && backoff_delay=$3
 
 	curl --user-agent "${DOWNLOAD_USER_AGENT}" --fail --location "$1" >"$2" || success="no"
 	if [ "${success}" = "no" ]; then
-		if prompt_yesno "Downloading $1 failed.  Retry? " "yes"; then
+		if prompt_yesno "Downloading $1 failed.  Retry? "; then
 			wait_delay "$backoff_delay"
-			backoff_delay=$(("$backoff_delay" + 1))
+			backoff_delay=$((backoff_delay + 1))
+			[ $backoff_delay -gt $max_delay ] && backoff_delay=$max_delay
 			retryable_curl "$1" "$2" "$backoff_delay"
+		else
+			rm -f "$2"
 		fi
 	fi
 }
@@ -206,7 +212,7 @@ verify_sha256() {
 		fail 11 "The sha256sum or shasum command, required to use this script, is not found."
 	fi
 	if [ "$sha256_rc" -ne 0 ]; then
-		fail 1 "Failed to verify the SHA-256 value for the file ${file_name}."
+		fail 1 "Failed to verify the SHA-256 value for the file ${file_path}."
 	fi
 	rm -f "$sha256sum_path" || fail 17 "Failed to remove (created) SHA256SUMS file."
 	cd "${pwd}" || fail 2 "Failed to return to previous directory."

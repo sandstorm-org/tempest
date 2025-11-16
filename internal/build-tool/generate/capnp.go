@@ -49,7 +49,7 @@ func GenerateCapnp(buildToolConfig *buildtool.RuntimeConfigBuildTool) ([]string,
 		}
 		err = writeGoCapnpFileWithCGR(config, capnpFilepath, cgr)
 		if err != nil {
-			messages = append(messages, "Filed to compile CodeGeneratorRequest for file "+capnpFilepath)
+			messages = append(messages, "Failed to compile CodeGeneratorRequest for file "+capnpFilepath)
 			return messages, err
 		}
 	}
@@ -134,14 +134,21 @@ func getGlobbedCapnpFilePaths(config *generateCapnpConfig) ([]string, error) {
 
 func writeGoCapnpFileWithCGR(config *generateCapnpConfig, capnpFilepath string, codeGeneratorRequest []byte) error {
 	capnpDirectory := filepath.Dir(capnpFilepath)
+	capnpFilename := filepath.Base(capnpFilepath)
+	capnpBase := capnpFilename[:len(capnpFilename) - len(".capnp")]
+	outputDirectory := filepath.Join(capnpDirectory, capnpBase)
+	err := os.MkdirAll(outputDirectory, 0755)
+	if err != nil {
+		return err
+	}
 	cmd := exec.Command(config.goCapnpExecutable)
 	// The CodeGeneratorRequest contains the name of the source file, which
 	// is used to create the destination file.  We have to put it in the
 	// correct directory.
-	cmd.Dir = capnpDirectory
+	cmd.Dir = outputDirectory
 	cmd.Stdin = bytes.NewReader(codeGeneratorRequest)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	err := cmd.Run()
+	err = cmd.Run()
 	return err
 }

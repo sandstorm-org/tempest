@@ -206,10 +206,10 @@ $(TINYGO): $(BUILDTOOL)
 	@echo Setting up TinyGo $(TINYGO_VERSION)
 	$(BUILDTOOL) bootstrap-tinygo
 
-capnp/%.capnp.go: $(BUILDTOOL) $(CAPNP) $(GOCAPNP) capnp/%.capnp
+capnp/%/%.capnp.go: $(BUILDTOOL) $(CAPNP) $(GOCAPNP) capnp/%.capnp
 	$(BUILDTOOL) generate-capnp
 
-internal/capnp/%.capnp.go: $(BUILDTOOL) $(CAPNP) $(GOCAPNP) internal/capnp/%.capnp
+internal/capnp/%/%.capnp.go: $(BUILDTOOL) $(CAPNP) $(GOCAPNP) internal/capnp/%.capnp
 	$(BUILDTOOL) generate-capnp
 #
 # Update Targets

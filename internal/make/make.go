@@ -190,6 +190,30 @@ func buildConfig(r *BuildRecord) {
 	}
 }
 
+const (
+	binaryenVersion = "125"
+	tinyGoVersion   = "0.37.0"
+	toolchainDir    = "toolchain"
+)
+
+// getToolchainTinyGo returns the path to the toolchain TinyGo executable
+func getToolchainTinyGo() string {
+	tinygoPath := filepath.Join(toolchainDir, "tinygo-"+tinyGoVersion, "bin", "tinygo")
+	if _, err := os.Stat(tinygoPath); err == nil {
+		return tinygoPath
+	}
+	return "tinygo" // fall back to system
+}
+
+// getToolchainWasmOpt returns the path to the toolchain wasm-opt executable
+func getToolchainWasmOpt() string {
+	wasmOptPath := filepath.Join(toolchainDir, "binaryen-version_"+binaryenVersion, "bin", "wasm-opt")
+	if _, err := os.Stat(wasmOptPath); err == nil {
+		return wasmOptPath
+	}
+	return "wasm-opt" // fall back to system
+}
+
 func buildCapnp(r *BuildRecord) {
 	log.Println("Compiling capnp schema")
 	c := readConfig()
@@ -241,14 +265,15 @@ func findWasmExecJs(cfg Config) (string, error) {
 		return cfg.WithWasmExecJs, nil
 	}
 	if cfg.TinyGo {
-		// Try to find wasm_exec.js based on the location of tinygo;
-		// e.g. if tinygo is at /usr/bin/tinygo, we look under
-		// /usr/lib/tinygo and other similar directories.
-		tinygoExe, err := exec.LookPath("tinygo")
-		if err != nil {
-			return "", fmt.Errorf("can't find tinygo executable: %w", err)
-		}
+		// Try to find wasm_exec.js based on the location of tinygo
+		tinygoExe := getToolchainTinyGo()
 		prefix := filepath.Dir(filepath.Dir(tinygoExe))
+		// For toolchain tinygo, wasm_exec.js is in targets/
+		directPath := filepath.Join(prefix, "targets", "wasm_exec.js")
+		if _, err := os.Stat(directPath); err == nil {
+			return directPath, nil
+		}
+		// Fallback for system tinygo installations
 		candidates := []string{"/lib", "/lib32", "/lib64", "/share"}
 		suffix := "/tinygo/targets/wasm_exec.js"
 		for _, c := range candidates {
@@ -288,13 +313,17 @@ func buildWebui(r *BuildRecord, cfg Config) error {
 	// Build the webassembly binary:
 	log.Println("Building wasm binary")
 	if cfg.TinyGo {
-		err := runInDir(".",
-			"tinygo", "build",
+		tinygoExe := getToolchainTinyGo()
+		wasmOptExe := getToolchainWasmOpt()
+		cmd := exec.Command(tinygoExe, "build",
 			"-target", "wasm",
 			"-panic", "trap",
 			"-no-debug",
 			"-o="+tmpPath,
 			srcDir)
+		cmd.Env = append(cmd.Env, os.Environ()...)
+		cmd.Env = append(cmd.Env, "WASMOPT="+wasmOptExe)
+		err := withMyOuts(cmd).Run()
 		if err != nil {
 			return err
 		}

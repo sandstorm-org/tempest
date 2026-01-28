@@ -11,11 +11,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.25'
-
       - name: Cache toolchain
         uses: actions/cache@v4
         with:
@@ -25,13 +20,20 @@ jobs:
           key: toolchain-${{ runner.os }}-${{ hashFiles('Makefile', 'scripts/bootstrap-build-tool.sh') }}
 
       - name: Build toolchain
-        run: make toolchain
+        run: |
+          make toolchain
+          echo "$(echo $PWD/toolchain/go-[0-9]*/bin)" >> $GITHUB_PATH
+          echo "$(echo $PWD/toolchain/capnp-[0-9]*/)" >> $GITHUB_PATH
+          echo "$(echo $PWD/toolchain/go-capnp-[0-9]*/capnpc-go/)" >> $GITHUB_PATH
+          echo "$(echo $PWD/toolchain/tinygo-[0-9]*/bin)" >> $GITHUB_PATH
 
       - name: Configure and build
         run: |
-          ./configure --prefix=/tmp/tempest
+          ./configure --prefix=/tmp/tempest \
+            --with-go-capnp=$(echo $PWD/toolchain/go-capnp-*) \
+            --with-wasm_exec.js=$(echo $PWD/toolchain/go-*/lib/wasm/wasm_exec.js) \
+            --use-tinygo=false
           make build
 
       - name: Run tests
-        run: |
-          go test ./internal/server/... ./internal/common/... ./pkg/...
+        run: go test ./internal/server/... ./internal/common/... ./pkg/...

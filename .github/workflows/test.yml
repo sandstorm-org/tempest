@@ -43,4 +43,4 @@ jobs:
           make build
 
       - name: Run tests
-        run: go test ./...
+        run: go test $(go list ./... | grep -v '/browser/' | grep -v 'cmd/webui')

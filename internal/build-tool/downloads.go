@@ -21,6 +21,7 @@ import (
 )
 
 type DownloadsTomlTopLevel struct {
+	Binaryen  DownloadsTomlTool `toml:"binaryen"`
 	Bison     DownloadsTomlTool `toml:"bison"`
 	CapnProto DownloadsTomlTool `toml:"capnproto"`
 	Flex      DownloadsTomlTool `toml:"flex"`

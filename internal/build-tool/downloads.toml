@@ -1,3 +1,20 @@
+[binaryen]
+DownloadUrlTemplate = "https://github.com/WebAssembly/binaryen/releases/download/version_{{ .Version }}/{{ .Filename }}"
+FilenameTemplate = "binaryen-version_{{ .Version }}-{{ .Arch }}-{{ .OS }}.tar.gz"
+PreferredVersion = "125"
+
+[binaryen.files."binaryen-version_125-arm64-macos.tar.gz"]
+SHA-256 = "28bab047c4ce845c5c1da111222ffee5fafcec0bbedd046ad8b3dcae0fd57076"
+Size = 6827261
+
+[binaryen.files."binaryen-version_125-aarch64-linux.tar.gz"]
+SHA-256 = "d0382de3c189a7cbb9fdda93e2966f4557f6a00f201e2c4937c27ca01cead4fc"
+Size = 103059268
+
+[binaryen.files."binaryen-version_125-x86_64-linux.tar.gz"]
+SHA-256 = "7c3bc16599c8274a04d34a504fe4be2047884f900e0e2da2f6fb9cd667183be4"
+Size = 106809634
+
 [bison]
 DownloadUrlTemplate = "https://ftpmirror.gnu.org/bison/{{ .Filename }}"
 FilenameTemplate = "bison-{{ .Version }}.tar.xz"

@@ -49,7 +49,10 @@ func TestGetBody(t *testing.T) {
 
 				assert.Equal(t, http.StatusOK, rec.Code)
 				assert.Equal(t, expected, rec.Body.String())
-				if c.callExpectSize {
+				// Content-Length is set when:
+				// - Using bytes (stream=false), always set by the handler
+				// - Using streaming with expectSize called
+				if !c.stream || c.callExpectSize {
 					assert.Equal(t,
 						strconv.Itoa(len(expected)),
 						rec.Result().Header.Get("Content-Length"),

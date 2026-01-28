@@ -19,6 +19,13 @@ jobs:
             ~/.cache/tempest-build-tool
           key: toolchain-${{ runner.os }}-${{ hashFiles('Makefile', 'scripts/bootstrap-build-tool.sh') }}
 
+      - name: Cache Go modules
+        uses: actions/cache@v4
+        with:
+          path: ~/go/pkg/mod
+          key: gomod-${{ runner.os }}-${{ hashFiles('go.sum') }}
+          restore-keys: gomod-${{ runner.os }}-
+
       - name: Build toolchain
         run: |
           make toolchain

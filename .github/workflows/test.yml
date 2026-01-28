@@ -1,0 +1,26 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+
+      - name: Configure and build
+        run: |
+          ./configure --prefix=/tmp/tempest
+          SKIP_C_BUILD=1 make build
+
+      - name: Run tests
+        run: |
+          go test ./internal/server/... ./internal/common/... ./pkg/...

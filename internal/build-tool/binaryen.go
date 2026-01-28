@@ -150,6 +150,10 @@ func BootstrapBinaryen(buildToolConfig *RuntimeConfigBuildTool) ([]string, error
 	} else {
 		transformBinaryenTarGz := transformBinaryenTarGzFactory(binaryenConfig.toolchainDir, binaryenConfig.versionedDir)
 		err = extractTarGz(downloadPath, filterBinaryenTarGz(binaryenConfig.versionedDir), transformBinaryenTarGz)
+		if err != nil {
+			messages = append(messages, fmt.Sprintf("Failed to extract %s", downloadPath))
+			return messages, err
+		}
 	}
 	binaryenConfig.executable = filepath.Join(binaryenConfig.toolchainDir, "bin", "wasm-opt")
 	// Update the modified time of the Binaryen executable.
@@ -169,7 +173,7 @@ func BootstrapBinaryen(buildToolConfig *RuntimeConfigBuildTool) ([]string, error
 	return messages, err
 }
 
-func filterBinaryenTarGz(versionedDir string) func(string) bool {
+func filterBinaryenTarGz(versionedDir string) fileFilter {
 	prefix := versionedDir + "/"
 	return func(filePath string) bool {
 		acceptable := strings.HasPrefix(filePath, prefix)

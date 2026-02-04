@@ -49,7 +49,7 @@ type binaryenDownloadUrlTemplateValues struct {
 // text/template uses these struct fields from a separate package, so they must be in PascalCase.
 type binaryenFilenameTemplateValues struct {
 	Arch    string
-	OS      string
+	Os      string
 	Version string
 }
 
@@ -196,7 +196,7 @@ func getBinaryenConfig(buildToolConfig *RuntimeConfigBuildTool) (*binaryenConfig
 	// Download File
 	filenameValues := binaryenFilenameTemplateValues{
 		Arch:    getBinaryenArch(),
-		OS:      getBinaryenOS(),
+		Os:      getBinaryenOS(),
 		Version: version,
 	}
 	filenameTemplate, err := template.New("filename").Parse(buildToolConfig.Binaryen.filenameTemplate)

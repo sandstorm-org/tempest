@@ -1,6 +1,6 @@
 [binaryen]
 DownloadUrlTemplate = "https://github.com/WebAssembly/binaryen/releases/download/version_{{ .Version }}/{{ .Filename }}"
-FilenameTemplate = "binaryen-version_{{ .Version }}-{{ .Arch }}-{{ .OS }}.tar.gz"
+FilenameTemplate = "binaryen-version_{{ .Version }}-{{ .Arch }}-{{ .Os }}.tar.gz"
 PreferredVersion = "125"
 
 [binaryen.files."binaryen-version_125-arm64-macos.tar.gz"]

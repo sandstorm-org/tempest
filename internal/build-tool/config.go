@@ -52,6 +52,7 @@ type ConfigTomlBuildTool struct {
 	DownloadsFile        string
 	ToolChainDirTemplate string
 
+	Binaryen  ConfigTomlTool     `toml:"binaryen"`
 	Bison     ConfigTomlTool     `toml:"bison"`
 	BpfAsm    ConfigTomlBpfAsm   `toml:"bpf_asm"`
 	CapnProto ConfigTomlTool     `toml:"capnproto"`
@@ -120,6 +121,7 @@ type RuntimeConfigBuildTool struct {
 	Directories *runtimeConfigDirectories
 	Executables *runtimeConfigExecutables
 
+	Binaryen  *runtimeConfigTool
 	Bison     *runtimeConfigTool
 	BpfAsm    *runtimeConfigBpfAsm
 	CapnProto *runtimeConfigTool
@@ -254,6 +256,14 @@ func BuildConfiguration(configFile *ConfigTomlTopLevel, downloadsFile *Downloads
 	}
 	config.Executables = new(runtimeConfigExecutables)
 	err = populateExecutablesRuntimeConfig(config, configFile, toolchainToml)
+	if err != nil {
+		return nil, err
+	}
+	// Binaryen
+	config.Binaryen = new(runtimeConfigTool)
+	config.Binaryen.Name = "Binaryen"
+	config.Binaryen.Prefix = "binaryen-version_"
+	err = populateToolRuntimeConfig(config.Binaryen, config.Directories, &configFile.BuildTool.Binaryen, &downloadsFile.Binaryen, toolchainToml.Binaryen)
 	if err != nil {
 		return nil, err
 	}

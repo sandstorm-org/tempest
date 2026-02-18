@@ -24,6 +24,7 @@ import (
 )
 
 type ToolchainTomlTopLevel struct {
+	Binaryen  *ToolchainTomlTool `toml:"binaryen"`
 	Bison     *ToolchainTomlTool `toml:"bison"`
 	BpfAsm    *ToolchainTomlTool `toml:"bpf-asm"`
 	CapnProto *ToolchainTomlTool `toml:"capnproto"`

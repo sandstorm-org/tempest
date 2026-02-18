@@ -13,6 +13,7 @@ const DefaultConfigPath = "./config.toml"
 const DefaultDownloadsFilePath = "./internal/build-tool/downloads.toml"
 
 var CLI struct {
+	BootstrapBinaryen  struct{} `cmd:"" help:"Bootstrap Binaryen (wasm-opt)"`
 	BootstrapBison     struct{} `cmd:"" help:"Bootstrap Bison"`
 	BootstrapBpfAsm    struct{} `cmd:"" help:"Bootstrap bpf_asm" name:"bootstrap-bpf_asm"`
 	BootstrapCapnProto struct{} `cmd:"" help:"Bootstrap Cap'n Proto" name:"bootstrap-capnproto"`
@@ -36,6 +37,12 @@ func main() {
 	}
 
 	switch context.Command() {
+	case "bootstrap-binaryen":
+		messages, err := buildtool.BootstrapBinaryen(config)
+		logMessages(CLI.Verbose, messages)
+		if err != nil {
+			log.Fatal(err)
+		}
 	case "bootstrap-bison":
 		messages, err := buildtool.BootstrapBison(config)
 		logMessages(CLI.Verbose, messages)

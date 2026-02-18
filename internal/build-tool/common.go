@@ -152,7 +152,7 @@ func extractTar(tarReader *tar.Reader, fileName string, filter fileFilter, trans
 		} else if next.Typeflag == tar.TypeXGlobalHeader {
 			// Ignore the PAX format global header
 		} else {
-			return fmt.Errorf("Unexpected type in tar header: %s (%s)", next.Typeflag, fileName)
+			return fmt.Errorf("Unexpected type in tar header: %c (%s)", next.Typeflag, fileName)
 		}
 	}
 	// Fix the directory access times and modification times

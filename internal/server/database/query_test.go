@@ -68,18 +68,10 @@ func addTestData(t *testing.T, tx Tx) {
 		{
 			ID:   "id_alice",
 			Role: types.RoleAdmin,
-			Profile: Profile{
-				DisplayName:     "Alice",
-				PreferredHandle: "alice",
-			},
 		},
 		{
 			ID:   "id_bob",
 			Role: types.RoleUser,
-			Profile: Profile{
-				DisplayName:     "Bob",
-				PreferredHandle: "bob",
-			},
 		},
 	}
 

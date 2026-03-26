@@ -225,16 +225,16 @@ func (kr Keyring) AttachGrain(grainID types.GrainID, permissions []bool) error {
 func (tx Tx) AccountGrainPermissions(accountID types.AccountID, grainID types.GrainID) (permissions []bool, err error) {
 	row := tx.sqlTx.QueryRow(
 		`SELECT
-			keyringEntries.appPermissions
-		FROM
-			sturdyRefs, keyringEntries
-		WHERE
-			keyringEntries.sha256 = keyringEntries.sha256
-			AND sturdyRefs.grainId = ?
-			AND sturdyRefs.objectId is null
-			AND sturdyRefs.ownerType = 'userkeyring'
-			AND sturdyRefs.owner = ?
-			AND sturdyRefs.expires > ?
+				keyringEntries.appPermissions
+			FROM
+				sturdyRefs, keyringEntries
+			WHERE
+				keyringEntries.sha256 = sturdyRefs.sha256
+				AND sturdyRefs.grainId = ?
+				AND sturdyRefs.objectId is null
+				AND sturdyRefs.ownerType = 'userkeyring'
+				AND sturdyRefs.owner = ?
+				AND sturdyRefs.expires > ?
 		`,
 		grainID,
 		accountID,

@@ -2,8 +2,10 @@ package database
 
 import (
 	"database/sql"
+	"math"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"sandstorm.org/go/tempest/internal/common/types"
@@ -61,6 +63,30 @@ func TestAccountGrainPermissions(t *testing.T) {
 	})
 }
 */
+
+func TestAccountGrainPermissionsRequiresMatchingKeyringEntry(t *testing.T) {
+	testWithTx(t, func(tx Tx) {
+		addTestData(t, tx)
+
+		// Insert a sturdyRef for bob without adding a matching keyringEntries row.
+		// AccountGrainPermissions should not return permissions in this case.
+		_, err := tx.SaveSturdyRef(
+			SturdyRefKey{
+				Token:     []byte("bob-token-no-keyring-entry"),
+				OwnerType: "userkeyring",
+				Owner:     "id_bob",
+			},
+			SturdyRefValue{
+				Expires: time.Unix(math.MaxInt64, 0),
+				GrainID: "grain123",
+			},
+		)
+		assert.NoError(t, err)
+
+		_, err = tx.AccountGrainPermissions("id_bob", "grain123")
+		assert.ErrorIs(t, err, sql.ErrNoRows)
+	})
+}
 
 // addTestData populates the database with some initial data.
 func addTestData(t *testing.T, tx Tx) {

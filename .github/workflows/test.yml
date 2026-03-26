@@ -1,0 +1,46 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache toolchain
+        uses: actions/cache@v4
+        with:
+          path: |
+            ./toolchain
+            ~/.cache/tempest-build-tool
+          key: toolchain-${{ runner.os }}-${{ hashFiles('Makefile', 'scripts/bootstrap-build-tool.sh') }}
+
+      - name: Cache Go modules
+        uses: actions/cache@v4
+        with:
+          path: ~/go/pkg/mod
+          key: gomod-${{ runner.os }}-${{ hashFiles('go.sum') }}
+          restore-keys: gomod-${{ runner.os }}-
+
+      - name: Build toolchain
+        run: |
+          make toolchain
+          echo "$(echo $PWD/toolchain/go-[0-9]*/bin)" >> $GITHUB_PATH
+          echo "$(echo $PWD/toolchain/capnp-[0-9]*/)" >> $GITHUB_PATH
+          echo "$(echo $PWD/toolchain/go-capnp-[0-9]*/capnpc-go/)" >> $GITHUB_PATH
+          echo "$(echo $PWD/toolchain/tinygo-[0-9]*/bin)" >> $GITHUB_PATH
+
+      - name: Configure and build
+        run: |
+          ./configure --prefix=/tmp/tempest \
+            --with-go-capnp=$(echo $PWD/toolchain/go-capnp-*) \
+            --with-wasm_exec.js=$(echo $PWD/toolchain/go-*/lib/wasm/wasm_exec.js) \
+            --use-tinygo=false
+          make build
+
+      - name: Run tests
+        run: go test $(go list ./... | grep -v 'browser/main' | grep -v 'cmd/webui')

@@ -34,9 +34,10 @@ require (
 // NOTE: We don't use this package directly; it is pulled in by lego, but lego
 // asks for version 0.2.0, which causes a build error that is fixed
 // by updating to 0.2.1; see https://github.com/googleapis/google-cloud-go/issues/6956
-require cloud.google.com/go/compute/metadata v0.2.1
+require cloud.google.com/go/compute/metadata v0.2.1 // indirect
 
 require (
+	cloud.google.com/go/compute v1.12.1 // indirect
 	github.com/Azure/azure-sdk-for-go v32.4.0+incompatible // indirect
 	github.com/Azure/go-autorest v14.2.0+incompatible // indirect
 	github.com/Azure/go-autorest/autorest v0.11.24 // indirect
@@ -75,7 +76,8 @@ require (
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/uuid v1.3.0 // indirect
-	github.com/googleapis/gax-go/v2 v2.0.5 // indirect
+	github.com/googleapis/enterprise-certificate-proxy v0.2.0 // indirect
+	github.com/googleapis/gax-go/v2 v2.6.0 // indirect
 	github.com/gophercloud/gophercloud v1.0.0 // indirect
 	github.com/gophercloud/utils v0.0.0-20210216074907-f6de111f2eae // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
@@ -145,8 +147,9 @@ require (
 	golang.org/x/text v0.6.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	golang.org/x/tools v0.2.0 // indirect
-	google.golang.org/api v0.47.0 // indirect
+	google.golang.org/api v0.100.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
+	google.golang.org/genproto v0.0.0-20221024183307-1bc688fe9f3e // indirect
 	google.golang.org/grpc v1.51.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/ini.v1 v1.66.6 // indirect

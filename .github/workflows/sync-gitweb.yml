@@ -19,7 +19,7 @@ jobs:
       - name: Git Sync Action
         uses: wei/git-sync@v3.0.0
         with:
-          source_repo: "sandstorm-org/sandstorm-website"
+          source_repo: "sandstorm-org/tempest"
           source_branch: "refs/remotes/source/*"
           destination_repo: "${{ secrets.JACOB_SYNC_URL }}"
           destination_branch: "refs/heads/*"
